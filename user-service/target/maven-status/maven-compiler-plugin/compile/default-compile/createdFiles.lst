@@ -1,0 +1,14 @@
+com\foodie\user_service\config\SecurityConfig.class
+com\foodie\user_service\model\Address$AddressBuilder.class
+com\foodie\user_service\model\User$UserBuilder.class
+com\foodie\user_service\repository\UserRepository.class
+com\foodie\user_service\UserServiceApplication.class
+com\foodie\user_service\dto\UserAuthDetails.class
+com\foodie\user_service\filter\CorrelationIdFilter.class
+com\foodie\user_service\config\VirtualThreadConfig.class
+com\foodie\user_service\controller\InternalUserController.class
+com\foodie\user_service\controller\UserController.class
+com\foodie\user_service\model\Address.class
+com\foodie\user_service\service\UserService.class
+com\foodie\user_service\model\User$Role.class
+com\foodie\user_service\model\User.class

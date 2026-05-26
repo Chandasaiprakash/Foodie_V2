@@ -1,0 +1,24 @@
+apiVersion: v2
+name: foodie
+description: |
+  Distributed Food Ordering Platform — Helm Chart.
+
+  Autoscaling:
+    HTTP services   → HPA (autoscaling/v2, CPU + memory)
+    Kafka consumers → KEDA ScaledObjects (lag-based)
+
+  Prerequisites:
+    - KEDA >= 2.13 installed in the cluster:
+        helm repo add kedacore https://kedacore.github.io/charts
+        helm install keda kedacore/keda --namespace keda --create-namespace
+    - metrics-server running (for HPA CPU/memory):
+        kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+type: application
+version: 1.1.0
+appVersion: "1.0.0"
+keywords:
+  - foodie
+  - microservices
+  - spring-boot
+  - kafka
+  - keda

@@ -1,0 +1,384 @@
+name: foodie
+
+x-service-build: &service-build
+  context: .
+  dockerfile: Dockerfile.service
+
+x-java-service-env: &java-service-env
+  SPRING_PROFILES_ACTIVE: local
+  MANAGEMENT_OTLP_TRACING_ENDPOINT: http://jaeger:4318/v1/traces
+
+x-mysql-env: &mysql-env
+  SPRING_DATASOURCE_USERNAME: root
+  SPRING_DATASOURCE_PASSWORD: root
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server=localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - foodie-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: foodie
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - foodie-net
+
+  mongo:
+    image: mongo:7.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - foodie-net
+
+  mongo-seed:
+    image: mongo:7.0
+    container_name: mongo-seed
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ./foodie_restaurant.restaurants:/seed/restaurants.json:ro
+    command:
+      - sh
+      - -c
+      - |
+        count=$$(mongosh --host mongo --quiet --eval "db.getSiblingDB('foodie_restaurant').restaurants.countDocuments()")
+        if [ "$$count" = "0" ]; then
+          mongoimport --host mongo --db foodie_restaurant --collection restaurants --file /seed/restaurants.json --jsonArray
+        else
+          echo "foodie_restaurant.restaurants already has $$count document(s); skipping seed"
+        fi
+    restart: "no"
+    networks:
+      - foodie-net
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - foodie-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow\\&timeout=5s >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+    networks:
+      - foodie-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - foodie-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - foodie-net
+
+  user-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: user-service
+    container_name: user-service
+    ports:
+      - "8085:8085"
+    environment:
+      <<: [*java-service-env, *mysql-env]
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/foodie_user?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - foodie-net
+
+  auth-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      <<: [*java-service-env, *mysql-env]
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/foodie_auth?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      USER_SERVICE_URL: http://user-service:8085
+    depends_on:
+      mysql:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - foodie-net
+
+  order-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: order-service
+    container_name: order-service
+    ports:
+      - "8082:8082"
+    environment:
+      <<: [*java-service-env, *mysql-env]
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/foodie_order?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - foodie-net
+
+  payment-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: payment-service
+    container_name: payment-service
+    ports:
+      - "8083:8083"
+    environment:
+      <<: [*java-service-env, *mysql-env]
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/foodie_payment?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-rzp_test_local_dummy}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-local_dummy_secret}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-local_dummy_webhook_secret}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - foodie-net
+
+  restaurant-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: restaurant-service
+    container_name: restaurant-service
+    ports:
+      - "8084:8084"
+    environment:
+      <<: *java-service-env
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/foodie_restaurant
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mongo-seed:
+        condition: service_completed_successfully
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - foodie-net
+
+  delivery-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: delivery-service
+    container_name: delivery-service
+    ports:
+      - "8086:8086"
+    environment:
+      <<: *java-service-env
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/foodie_delivery
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      ORDER_SERVICE_URL: http://order-service:8082
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+    networks:
+      - foodie-net
+
+  notification-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: notification-service
+    container_name: notification-service
+    ports:
+      - "8087:8087"
+    environment:
+      <<: *java-service-env
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - foodie-net
+
+  cart-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: cart-service
+    container_name: cart-service
+    ports:
+      - "8088:8088"
+    environment:
+      <<: *java-service-env
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/foodie_cart
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - foodie-net
+
+  gateway-service:
+    build:
+      <<: *service-build
+      args:
+        SERVICE_DIR: gateway-service
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      <<: *java-service-env
+      SPRING_CLOUD_GATEWAY_ROUTES_0_URI: http://auth-service:8081
+      SPRING_CLOUD_GATEWAY_ROUTES_1_URI: http://order-service:8082
+      SPRING_CLOUD_GATEWAY_ROUTES_2_URI: http://payment-service:8083
+      SPRING_CLOUD_GATEWAY_ROUTES_3_URI: http://delivery-service:8086
+      SPRING_CLOUD_GATEWAY_ROUTES_4_URI: http://notification-service:8087
+      SPRING_CLOUD_GATEWAY_ROUTES_5_URI: http://restaurant-service:8084
+      SPRING_CLOUD_GATEWAY_ROUTES_6_URI: http://restaurant-service:8084
+      SPRING_CLOUD_GATEWAY_ROUTES_7_URI: http://cart-service:8088
+      SPRING_CLOUD_GATEWAY_ROUTES_8_URI: ws://notification-service:8087
+    depends_on:
+      auth-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+      delivery-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      restaurant-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+    networks:
+      - foodie-net
+
+  frontend:
+    build:
+      context: ./Foodie-App-Frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_WS_BASE_URL: /ws
+    container_name: foodie-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      gateway-service:
+        condition: service_started
+    networks:
+      - foodie-net
+
+volumes:
+  mysql-data:
+  mongo-data:
+  redis-data:
+  elasticsearch-data:
+
+networks:
+  foodie-net:
+    driver: bridge

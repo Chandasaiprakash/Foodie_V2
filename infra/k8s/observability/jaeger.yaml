@@ -1,0 +1,130 @@
+# =============================================================================
+# Jaeger — Distributed Tracing Backend
+#
+# Deployment: all-in-one image (collector + query + UI in one pod).
+# Storage: in-memory (badger). For production, switch to:
+#   SPAN_STORAGE_TYPE=elasticsearch  with an external ES cluster, or
+#   SPAN_STORAGE_TYPE=cassandra      for very high trace volumes.
+#
+# Access the Jaeger UI:
+#   kubectl port-forward svc/jaeger-ui 16686:16686 -n foodie
+#   open http://localhost:16686
+#
+# How traces arrive:
+#   Foodie service → OTel Collector (4318 HTTP) → Jaeger collector (4317 gRPC OTLP)
+# =============================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: foodie
+  labels:
+    app: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.58
+          env:
+            # Use badger (embedded key-value store) for single-node persistence.
+            # Replace with elasticsearch for multi-node / long-retention setups.
+            - name: SPAN_STORAGE_TYPE
+              value: badger
+            - name: BADGER_EPHEMERAL
+              value: "false"
+            - name: BADGER_DIRECTORY_VALUE
+              value: /badger/data
+            - name: BADGER_DIRECTORY_KEY
+              value: /badger/key
+            # Accept native OTLP from the OTel Collector
+            - name: COLLECTOR_OTLP_ENABLED
+              value: "true"
+            # Retention: keep spans for 72 h before badger GC removes them.
+            # Increase for longer debugging windows.
+            - name: BADGER_SPAN_STORE_TTL
+              value: 72h
+          ports:
+            - containerPort: 16686   # Jaeger UI
+              name: ui
+            - containerPort: 4317    # OTLP gRPC (from OTel Collector)
+              name: otlp-grpc
+            - containerPort: 4318    # OTLP HTTP
+              name: otlp-http
+            - containerPort: 14269   # Admin / health
+              name: admin
+          volumeMounts:
+            - name: badger-storage
+              mountPath: /badger
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: admin
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: admin
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: badger-storage
+          # Use a PVC in production. EmptyDir is lost on pod restart.
+          # For production: replace with a PersistentVolumeClaim.
+          emptyDir: {}
+---
+# jaeger-collector: internal endpoint for the OTel Collector to push spans to
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: foodie
+  labels:
+    app: jaeger
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+  type: ClusterIP
+---
+# jaeger-ui: browser-accessible UI for engineers
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-ui
+  namespace: foodie
+  labels:
+    app: jaeger
+spec:
+  selector:
+    app: jaeger
+  ports:
+    - name: ui
+      port: 16686
+      targetPort: ui
+  type: ClusterIP
+  # To expose outside the cluster:
+  #   kubectl port-forward svc/jaeger-ui 16686:16686 -n foodie
+  #   Or add an Ingress rule pointing to port 16686.

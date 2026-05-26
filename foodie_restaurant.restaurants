@@ -1,0 +1,1146 @@
+[
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Hyderabadi",
+    "rating": 4.7,
+    "menu": [
+      { "name": "Hyderabadi Biryani (Chicken)", "description": "Long-grain basmati cooked with marinated chicken and saffron", "price": 320, "available": true },
+      { "name": "Mirchi ka Salan", "description": "Spicy peanut & sesame curry with green chillies", "price": 140, "available": true },
+      { "name": "Haleem (Seasonal)", "description": "Slow-cooked meat and lentil stew (popular during Ramadan)", "price": 250, "available": true },
+      { "name": "Double Ka Meetha", "description": "Bread pudding with saffron and dry fruits", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Paradise Biryani"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "South Indian",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Masala Dosa", "description": "Crispy dosa filled with spiced potato", "price": 90, "available": true },
+      { "name": "Medu Vada", "description": "Lentil-based fried savory", "price": 60, "available": true },
+      { "name": "Sambhar", "description": "Lentil and vegetable stew", "price": 70, "available": true },
+      { "name": "Filter Coffee", "description": "Strong South Indian filter coffee", "price": 40, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Rayalaseema Ruchulu"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Hyderabadi",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Chicken 65", "description": "Deep-fried spicy marinated chicken", "price": 180, "available": true },
+      { "name": "Boti Kebab", "description": "Succulent lamb cubes marinated and grilled", "price": 260, "available": true },
+      { "name": "Nihari", "description": "Slow-cooked beef stew (served with naan)", "price": 300, "available": true },
+      { "name": "Sheer Khurma", "description": "Sweet vermicelli pudding", "price": 100, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Shah Ghouse"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "North Indian",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Paneer Butter Masala", "description": "Soft paneer cubes in tomato-butter gravy", "price": 220, "available": true },
+      { "name": "Dal Makhani", "description": "Creamy black lentil curry", "price": 180, "available": true },
+      { "name": "Garlic Naan", "description": "Tandoor-baked flatbread with garlic", "price": 60, "available": true },
+      { "name": "Gulab Jamun", "description": "Fried milk dumplings in syrup", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Bawarchi Delights"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Fast Food",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Veg Burger", "description": "Crispy patty with lettuce and sauce", "price": 110, "available": true },
+      { "name": "French Fries", "description": "Crispy salted fries", "price": 80, "available": true },
+      { "name": "Milkshake (Chocolate)", "description": "Creamy chocolate milkshake", "price": 120, "available": true },
+      { "name": "Soft Drink (Coke)", "description": "330ml chilled bottle", "price": 60, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Burger King (Hitech City)"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Italian",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Pasta Arrabiata", "description": "Penne in spicy tomato sauce", "price": 240, "available": true },
+      { "name": "Margherita Pizza", "description": "Classic pizza with mozzarella and basil", "price": 350, "available": true },
+      { "name": "Tiramisu", "description": "Coffee-flavoured Italian dessert", "price": 160, "available": true },
+      { "name": "Lemon Iced Tea", "description": "Freshly brewed iced tea", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Little Italy Hyderabad"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Kebabs",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Seekh Kebab", "description": "Minced meat skewers with spices", "price": 220, "available": true },
+      { "name": "Chicken Tikka", "description": "Boneless chicken marinated & grilled", "price": 240, "available": true },
+      { "name": "Rumali Roti", "description": "Thin soft flatbread", "price": 40, "available": true },
+      { "name": "Mint Raita", "description": "Yogurt with mint and cucumber", "price": 60, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kebab Planet"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Andhra",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Gongura Mutton", "description": "Tamarind and sorrel-based spicy mutton curry", "price": 320, "available": true },
+      { "name": "Pulihora", "description": "Tangy tamarind rice", "price": 110, "available": true },
+      { "name": "Royyala Iguru (Prawn)", "description": "Spicy prawn curry", "price": 280, "available": true },
+      { "name": "Buttermilk (Moru)", "description": "Cooling spiced buttermilk", "price": 40, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Andhra Spice"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Cafe",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Chicken Cafetière Sandwich", "description": "Grilled chicken with pesto", "price": 220, "available": true },
+      { "name": "Egg Benedict", "description": "Poached eggs over English muffin with hollandaise", "price": 260, "available": true },
+      { "name": "Cold Brew Coffee", "description": "Slow-brewed cold coffee", "price": 150, "available": true },
+      { "name": "Blueberry Muffin", "description": "Freshly baked muffin with blueberries", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "The Daily Grind"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "South Indian",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Idli (Set of 2)", "description": "Steamed rice cakes served with chutney and sambar", "price": 60, "available": true },
+      { "name": "Masala Dosa", "description": "Crispy dosa with potato masala", "price": 95, "available": true },
+      { "name": "Pongal", "description": "Comforting rice and lentil dish", "price": 120, "available": true },
+      { "name": "Filter Coffee", "description": "Strong aromatic filter coffee", "price": 45, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Saravana Bhavan (Central)"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Chettinad",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Chettinad Chicken Curry", "description": "Spicy country-style chicken curry", "price": 250, "available": true },
+      { "name": "Kara Kuzhambu", "description": "Tamarind-based spicy curry", "price": 140, "available": true },
+      { "name": "Idiyappam", "description": "String hoppers served with stew", "price": 120, "available": true },
+      { "name": "Mysore Pak", "description": "Ghee-based sweet fudge", "price": 80, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Anjappar Chettinad"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Seafood",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Chettinad Fish Fry", "description": "Crispy fried fish with spice rub", "price": 260, "available": true },
+      { "name": "Crab Curry", "description": "Spicy coastal crab curry", "price": 420, "available": true },
+      { "name": "Kolkata Prawn Curry", "description": "Prawns cooked in mustard & coconut", "price": 320, "available": true },
+      { "name": "Fish Biryani", "description": "Aromatic biryani with coastal fish", "price": 300, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Sea Shells Chennai"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "South Indian",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Rava Dosa", "description": "Semolina-based crisp dosa", "price": 85, "available": true },
+      { "name": "Upma", "description": "Savory semolina dish", "price": 70, "available": true },
+      { "name": "Coconut Chutney", "description": "Fresh coconut chutney", "price": 40, "available": true },
+      { "name": "Masala Chai", "description": "Spiced Indian tea", "price": 30, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Murugan Idli Shop"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Korean",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Bibimbap", "description": "Mixed rice bowl with vegetables and egg", "price": 340, "available": true },
+      { "name": "Kimchi Jjigae", "description": "Spicy kimchi stew", "price": 300, "available": true },
+      { "name": "Korean Fried Chicken", "description": "Double-fried glazed chicken", "price": 380, "available": true },
+      { "name": "Soju Cocktail", "description": "Korean rice spirit based drink", "price": 220, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Seoul Spoon"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Cafe",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Egg Paratha", "description": "Whole wheat paratha with egg filling", "price": 140, "available": true },
+      { "name": "Avocado Toast", "description": "Sourdough topped with avocado and chili flakes", "price": 220, "available": true },
+      { "name": "Cold Brew", "description": "Slow-extracted cold brew coffee", "price": 160, "available": true },
+      { "name": "Chocolate Brownie", "description": "Fudgy brownie with nuts", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Cafe Alchemy"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Tamil Nadu",
+    "rating": 4.7,
+    "menu": [
+      { "name": "Karaikudi Mutton Curry", "description": "Rich mutton curry from Karaikudi", "price": 340, "available": true },
+      { "name": "Parotta", "description": "Layered flatbread (pair with curry)", "price": 60, "available": true },
+      { "name": "Chettinad Pepper Chicken", "description": "Peppery chicken specialty", "price": 260, "available": true },
+      { "name": "Payasam", "description": "Sweet rice pudding", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Karaikudi Kitchen"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Fast Food",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Chicken Wrap", "description": "Grilled chicken with salad in tortilla", "price": 160, "available": true },
+      { "name": "Peri-Peri Fries", "description": "Spicy peri-peri seasoned fries", "price": 110, "available": true },
+      { "name": "Iced Lemon Tea", "description": "Refreshing lemon iced tea", "price": 80, "available": true },
+      { "name": "Brownie Sundae", "description": "Brownie with vanilla ice cream", "price": 170, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Wrap & Roll Chennai"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Desserts",
+    "rating": 4.8,
+    "menu": [
+      { "name": "Kulfi Falooda", "description": "Traditional Indian ice cream with vermicelli", "price": 140, "available": true },
+      { "name": "Chocolate Mousse", "description": "Light, airy chocolate dessert", "price": 150, "available": true },
+      { "name": "Rasgulla", "description": "Soft cheese balls soaked in syrup", "price": 90, "available": true },
+      { "name": "Rose Milkshake", "description": "Rose-flavoured milkshake with basil seeds", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Sweet Corner Chennai"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Kannada",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Bisi Bele Bath", "description": "Spiced rice with lentils and vegetables", "price": 120, "available": true },
+      { "name": "Mysore Masala Dosa", "description": "Dosa with spicy chutney and masala", "price": 110, "available": true },
+      { "name": "Mangalore Bajji", "description": "Crispy banana bajji", "price": 70, "available": true },
+      { "name": "South Indian Filter Coffee", "description": "Strong aromatic filter coffee", "price": 45, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Nandhini Bangalore"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Cafe",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Avocado Egg Toast", "description": "Sourdough with smashed avocado and poached egg", "price": 260, "available": true },
+      { "name": "Buttermilk Pancakes", "description": "Fluffy pancakes with maple syrup", "price": 220, "available": true },
+      { "name": "Iced Latte", "description": "Espresso with cold milk and ice", "price": 150, "available": true },
+      { "name": "Greek Salad", "description": "Feta, olives, cucumber and tomato", "price": 200, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "The Bangalore Brew"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Karnataka",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Ragi Mudde with Mutton Saaru", "description": "Finger millet balls with spicy mutton soup", "price": 210, "available": true },
+      { "name": "Maddur Vada", "description": "Crispy semolina and rice vada", "price": 70, "available": true },
+      { "name": "Neer Dosa", "description": "Thin rice crepes", "price": 90, "available": true },
+      { "name": "Benne Dosa", "description": "Butter dosa", "price": 140, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Karavali Biryani House"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "North Indian",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Chole Bhature", "description": "Spicy chickpea curry with fried bread", "price": 150, "available": true },
+      { "name": "Paneer Tikka", "description": "Grilled marinated paneer cubes", "price": 220, "available": true },
+      { "name": "Kulfi", "description": "Traditional Indian ice cream", "price": 90, "available": true },
+      { "name": "Masala Chai", "description": "Spiced milk tea", "price": 35, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Saffron Spice"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Coffee House",
+    "rating": 4.7,
+    "menu": [
+      { "name": "Filter Coffee", "description": "Signature strong filter coffee", "price": 50, "available": true },
+      { "name": "Masala Bun", "description": "Soft bread with spiced filling", "price": 60, "available": true },
+      { "name": "Idli Vada Combo", "description": "Idli and vada served with sambar", "price": 100, "available": true },
+      { "name": "Lemon Coriander Soup", "description": "Tangy clear soup with herbs", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "MTR Cafe Bangalore"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Italian",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Wood-Fired Margherita", "description": "Classic pizza from a wood-fired oven", "price": 380, "available": true },
+      { "name": "Pesto Pasta", "description": "Pasta with basil pesto and pine nuts", "price": 320, "available": true },
+      { "name": "Tiramisu", "description": "Coffee-soaked layered dessert", "price": 160, "available": true },
+      { "name": "Espresso", "description": "Single shot espresso", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Via Roma Bangalore"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Biryani",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Bombay Biryani (Chicken)", "description": "Spiced layered biryani with aromatic masalas", "price": 300, "available": true },
+      { "name": "Koshimbir", "description": "Fresh salad with coconut and peanuts", "price": 80, "available": true },
+      { "name": "Mirchi Bajji", "description": "Large chilis stuffed and fried", "price": 90, "available": true },
+      { "name": "Raita", "description": "Yogurt with cucumber and spices", "price": 50, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Biryani Blues Bangalore"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Fast Food",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Big Mac", "description": "Classic beef burger with special sauce", "price": 220, "available": true },
+      { "name": "Large Fries", "description": "Salted potato fries", "price": 110, "available": true },
+      { "name": "McFlurry", "description": "Soft-serve with mix-ins", "price": 140, "available": true },
+      { "name": "Coca-Cola", "description": "Chilled soft drink", "price": 60, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "McDonald's (Koramangala)"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Modern Indian",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Pani Puri Shots", "description": "Deconstructed pani puri served in shot glasses", "price": 140, "available": true },
+      { "name": "Tandoori Prawns", "description": "Marinated prawns cooked in tandoor", "price": 360, "available": true },
+      { "name": "Paneer Lababdar", "description": "Rich tomato-based paneer curry", "price": 240, "available": true },
+      { "name": "Thandai Shake", "description": "Cardamom and nut-flavoured cold drink", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Grasshopper Bangalore"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Mughlai",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Mutton Biryani", "description": "Aromatic mutton biryani with saffron", "price": 380, "available": true },
+      { "name": "Butter Chicken", "description": "Creamy tomato-based chicken curry", "price": 320, "available": true },
+      { "name": "Naan", "description": "Tandoor-baked flatbread", "price": 50, "available": true },
+      { "name": "Zafrani Phirni", "description": "Saffron rice pudding", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Karim's Old Delhi"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Street Food",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Aloo Tikki Chaat", "description": "Crispy potato patties with chutneys and yogurt", "price": 110, "available": true },
+      { "name": "Gol Gappe (Pani Puri)", "description": "Hollow puris with spicy-sour water", "price": 80, "available": true },
+      { "name": "Chole Bhature", "description": "Spicy chickpeas with deep-fried bread", "price": 160, "available": true },
+      { "name": "Masala Chai", "description": "Spiced tea", "price": 30, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Nathu's Sweets & Chaat"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Punjabi",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Sarson ka Saag", "description": "Mustard greens curry", "price": 160, "available": true },
+      { "name": "Makki ki Roti", "description": "Corn flatbread", "price": 70, "available": true },
+      { "name": "Lassi (Salted)", "description": "Traditional yogurt drink", "price": 90, "available": true },
+      { "name": "Amritsari Fish", "description": "Spiced fried fish", "price": 300, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Punjabi Dhaba"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Kebabs",
+    "rating": 4.7,
+    "menu": [
+      { "name": "Galouti Kebab", "description": "Melt-in-mouth mince kebab", "price": 290, "available": true },
+      { "name": "Boti Kebab", "description": "Tender pieces of lamb", "price": 320, "available": true },
+      { "name": "Roomali Roti", "description": "Paper-thin roti", "price": 60, "available": true },
+      { "name": "Mint Chutney", "description": "Refreshing mint-based dip", "price": 40, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kebab Korner"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Tibetan",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Thukpa", "description": "Noodle soup with vegetables and meat", "price": 170, "available": true },
+      { "name": "Momos (Steamed)", "description": "Dumplings with spicy chutney", "price": 140, "available": true },
+      { "name": "Chili Tofu", "description": "Fried tofu in spicy sauce", "price": 190, "available": true },
+      { "name": "Ginger Tea", "description": "Warm ginger-infused tea", "price": 50, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Taste of Tibet"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Fine Dining",
+    "rating": 4.8,
+    "menu": [
+      { "name": "Duck Confit", "description": "Slow-cooked duck leg with herbs", "price": 780, "available": true },
+      { "name": "Truffle Risotto", "description": "Creamy arborio rice with truffle oil", "price": 620, "available": true },
+      { "name": "Grilled Asparagus", "description": "Asparagus tossed with olive oil", "price": 320, "available": true },
+      { "name": "Molten Chocolate Cake", "description": "Warm chocolate cake with liquid center", "price": 350, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "The Imperial Table"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Fast Food",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Whopper", "description": "Flame-grilled beef burger with veggies", "price": 240, "available": true },
+      { "name": "Onion Rings", "description": "Crispy battered onion rings", "price": 120, "available": true },
+      { "name": "Soft Drink", "description": "Chilled beverage", "price": 60, "available": true },
+      { "name": "Fries", "description": "Classic salted fries", "price": 100, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Burger King (Connaught Place)"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Rajasthani",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Laal Maas", "description": "Fiery Rajasthani mutton curry", "price": 360, "available": true },
+      { "name": "Gatte ki Sabzi", "description": "Gram flour dumplings in yogurt gravy", "price": 160, "available": true },
+      { "name": "Bajra Roti", "description": "Millet flatbread", "price": 50, "available": true },
+      { "name": "Bikaneri Bhujia", "description": "Crispy spicy snack", "price": 80, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Rajwada Delicacies"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Desserts",
+    "rating": 4.7,
+    "menu": [
+      { "name": "Gajar ka Halwa", "description": "Carrot pudding with ghee and nuts", "price": 120, "available": true },
+      { "name": "Rabri", "description": "Thickened sweetened milk", "price": 110, "available": true },
+      { "name": "Kheer", "description": "Rice pudding flavored with cardamom", "price": 100, "available": true },
+      { "name": "Kulfi", "description": "Traditional dense ice cream", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Shahi Mithai"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Maharashtrian",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Pav Bhaji", "description": "Spiced vegetable mash with buttered pav", "price": 160, "available": true },
+      { "name": "Vada Pav", "description": "Spicy potato fritter in bun", "price": 60, "available": true },
+      { "name": "Bombil Fry", "description": "Crispy Bombay duck fry", "price": 280, "available": true },
+      { "name": "Sol Kadhi", "description": "Coconut and kokum drink", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Sardar Pavbhaji"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Seafood",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Bombay Prawn Masala", "description": "Prawns cooked in tangy spicy masala", "price": 360, "available": true },
+      { "name": "Fish Thali", "description": "Daily catch with sides and rice", "price": 420, "available": true },
+      { "name": "Tawa Fish", "description": "Pan-seared fish with masalas", "price": 330, "available": true },
+      { "name": "Kokum Sherbet", "description": "Refreshing kokum drink", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "The Seafood Place"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Parsi",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Dhansak", "description": "Meat cooked with lentils and spices", "price": 360, "available": true },
+      { "name": "Patra Ni Macchi", "description": "Fish steamed in banana leaf with coconut paste", "price": 420, "available": true },
+      { "name": "Prawn Balchao", "description": "Tangy Goan-Parsi style prawns", "price": 380, "available": true },
+      { "name": "Laggan Nu Custard", "description": "Traditional Parsi caramel custard", "price": 160, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Bombay Irani Cafe"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Street Food",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Bhel Puri", "description": "Puffed rice chaat with tangy chutneys", "price": 80, "available": true },
+      { "name": "Sev Puri", "description": "Crispy puris topped with chutneys and sev", "price": 90, "available": true },
+      { "name": "Pani Puri", "description": "Hollow puris served with flavored water", "price": 70, "available": true },
+      { "name": "Masala Milk", "description": "Milk with saffron and nuts", "price": 100, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Chowpatty Chaat"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Vada Pav",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Classic Vada Pav", "description": "Batata vada served in pav with chutneys", "price": 50, "available": true },
+      { "name": "Schezwan Vada Pav", "description": "Fusion vada pav with schezwan sauce", "price": 70, "available": true },
+      { "name": "Masala Peanuts", "description": "Spiced roasted peanuts", "price": 60, "available": true },
+      { "name": "Cutting Chai", "description": "Small strong tea", "price": 20, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Ashok Vada Pav"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Maharashtrian",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Kothimbir Vadi", "description": "Coriander-based steamed and fried snack", "price": 90, "available": true },
+      { "name": "Misal Pav", "description": "Spicy sprouted bean curry with pav", "price": 160, "available": true },
+      { "name": "Thalipeeth", "description": "Savory multi-grain flatbread", "price": 140, "available": true },
+      { "name": "Puran Poli", "description": "Sweet stuffed flatbread", "price": 110, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Maharaja Rasoi"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Fast Food",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Large Pizza (Pepperoni)", "description": "Classic pepperoni pizza", "price": 520, "available": true },
+      { "name": "Garlic Bread", "description": "Buttery garlic bread", "price": 160, "available": true },
+      { "name": "Chocolate Lava Cake", "description": "Warm cake with molten center", "price": 180, "available": true },
+      { "name": "Soda", "description": "330ml chilled drink", "price": 60, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Domino's (Bandra)"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Mughlai",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Kebab Platter", "description": "Assortment of kebabs with chutney", "price": 420, "available": true },
+      { "name": "Chicken Changezi", "description": "Chicken in rich onion-tomato gravy", "price": 350, "available": true },
+      { "name": "Naan Basket", "description": "Selection of naans (butter, garlic)", "price": 150, "available": true },
+      { "name": "Shahi Tukda", "description": "Fried bread in sweet rabri", "price": 140, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Shamiana Mumbai"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Bengali",
+    "rating": 4.7,
+    "menu": [
+      { "name": "Macher Jhol", "description": "Light fish curry with mustard and spices", "price": 260, "available": true },
+      { "name": "Shorshe Ilish", "description": "Hilsa fish in mustard gravy", "price": 420, "available": true },
+      { "name": "Bhetki Paturi", "description": "Fish steamed in banana leaf", "price": 360, "available": true },
+      { "name": "Mishti Doi", "description": "Sweetened yogurt", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "6 Ballygunge Place"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Street Food",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Kathi Roll (Egg)", "description": "Egg and spice-filled paratha roll", "price": 120, "available": true },
+      { "name": "Puchka (Pani Puri)", "description": "Tangy water-filled puris", "price": 60, "available": true },
+      { "name": "Jhalmuri", "description": "Spiced puffed rice snack", "price": 50, "available": true },
+      { "name": "Churmur", "description": "Mixed crunchy chaat", "price": 45, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Nizam's Street Bites"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Bengali",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Rosogolla", "description": "Soft syrupy cheese balls", "price": 80, "available": true },
+      { "name": "Sandesh", "description": "Refined cottage cheese sweet", "price": 90, "available": true },
+      { "name": "Kosha Mangsho", "description": "Slow-cooked spicy mutton curry", "price": 360, "available": true },
+      { "name": "Luchi & Aloo Dum", "description": "Deep-fried bread with potato curry", "price": 160, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Bhojohori Manna Classic"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Chinese",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Chicken Manchurian", "description": "Indo-Chinese fried chicken in spicy sauce", "price": 220, "available": true },
+      { "name": "Chili Paneer", "description": "Fried paneer tossed in spicy glaze", "price": 240, "available": true },
+      { "name": "Fried Rice", "description": "Veg or egg fried rice", "price": 180, "available": true },
+      { "name": "Veg Hakka Noodles", "description": "Stir-fried noodles with veggies", "price": 190, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Mainland China Kolkata"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Tea & Snacks",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Kolkata Cutlet", "description": "Spiced meat cutlet", "price": 70, "available": true },
+      { "name": "Momo (Fried)", "description": "Crispy momos with sauce", "price": 140, "available": true },
+      { "name": "Tea (Adrak)", "description": "Ginger tea", "price": 30, "available": true },
+      { "name": "Sada Roti & Cholar Dal", "description": "Bengali-style dal with roti", "price": 110, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Arsalan Kolkata"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Bengali",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Prawn Malai Curry", "description": "Creamy coconut prawn curry", "price": 360, "available": true },
+      { "name": "Alu Posto", "description": "Potato cooked with poppy seed paste", "price": 140, "available": true },
+      { "name": "Beguni", "description": "Batter-fried brinjal slices", "price": 90, "available": true },
+      { "name": "Payesh", "description": "Rice kheer with cardamom", "price": 100, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Oh! Calcutta"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Fast Food",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Veg Wrap", "description": "Mixed veg and sauces wrapped in tortilla", "price": 160, "available": true },
+      { "name": "Cheese Nachos", "description": "Crispy nachos with cheese dip", "price": 220, "available": true },
+      { "name": "Fresh Lime Soda", "description": "Sweet or salted lime soda", "price": 70, "available": true },
+      { "name": "Brownie with Ice Cream", "description": "Warm brownie topped with ice cream", "price": 190, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Cafe Nero Kolkata"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Desserts",
+    "rating": 4.8,
+    "menu": [
+      { "name": "Mishti Doi (Ghar)", "description": "Traditional clay-pot sweet yogurt", "price": 110, "available": true },
+      { "name": "Roshogolla (Assorted)", "description": "Syrupy cheese balls", "price": 95, "available": true },
+      { "name": "Kulfi (Mango)", "description": "Dense mango kulfi", "price": 130, "available": true },
+      { "name": "Patishapta", "description": "Sweet crepes filled with coconut-jaggery", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Bhola Sweets"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Kerala",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Karimeen Pollichathu", "description": "Pearl spot fish marinated & grilled in banana leaf", "price": 420, "available": true },
+      { "name": "Kerala Fish Curry", "description": "Tangy coconut-based fish curry", "price": 330, "available": true },
+      { "name": "Appam & Stew", "description": "Soft hoppers with vegetable or chicken stew", "price": 220, "available": true },
+      { "name": "Pazham Pori", "description": "Banana fritters", "price": 80, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kozhi & Karimeen"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Malabar",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Malabar Biryani (Chicken)", "description": "Aromatic short-grain biryani with spices", "price": 350, "available": true },
+      { "name": "Ghee Rice", "description": "Fragrant rice with ghee and spices", "price": 160, "available": true },
+      { "name": "Kerala Parotta", "description": "Flaky layered flatbread", "price": 70, "available": true },
+      { "name": "Thalassery Chicken Curry", "description": "Coastal-style chicken curry", "price": 300, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Malabar Junction"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Vegetarian",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Sadya Thali (Lunch)", "description": "Traditional Kerala vegetarian feast on banana leaf", "price": 250, "available": true },
+      { "name": "Olan", "description": "Ash gourd and cowpea curry in coconut milk", "price": 120, "available": true },
+      { "name": "Avial", "description": "Mixed veg curry with coconut and yogurt", "price": 140, "available": true },
+      { "name": "Payasam", "description": "Sweet rice pudding", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Sadya Sadhya"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Seafood",
+    "rating": 4.7,
+    "menu": [
+      { "name": "Chemmeen Varattiyathu", "description": "Dry roasted prawns with spices", "price": 380, "available": true },
+      { "name": "Meen Pollichathu", "description": "Marinated fish in banana leaf", "price": 400, "available": true },
+      { "name": "Kappa & Meen Curry", "description": "Tapioca with spicy fish curry", "price": 260, "available": true },
+      { "name": "Erachi Varutharacha", "description": "Beef curry with roasted coconut", "price": 350, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Coastal Kerala Eats"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Cafe",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Kozhikode Halwa", "description": "Sweet halwa sold with banana", "price": 110, "available": true },
+      { "name": "Tea (Kadak)", "description": "Strong local tea with milk", "price": 30, "available": true },
+      { "name": "Egg Bun", "description": "Sweet bun with egg", "price": 60, "available": true },
+      { "name": "Banana Fritters", "description": "Pazham Pori served hot", "price": 80, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kadak Cafe Kerala"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Kozhikode",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Kozhikode Biryani", "description": "Unique Malabar-style biryani with short-grained rice", "price": 360, "available": true },
+      { "name": "Mutton Pepper Fry", "description": "Peppery dry mutton fry", "price": 320, "available": true },
+      { "name": "Parotta with Kurma", "description": "Flaky parotta served with veg kurma", "price": 160, "available": true },
+      { "name": "Sulaimani Tea", "description": "Lemon-infused black tea", "price": 40, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Malabar Spice"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Fusion",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Appam Burger", "description": "Fusion burger using appam as bun", "price": 190, "available": true },
+      { "name": "Seafood Platter", "description": "Assorted local seafood with dips", "price": 560, "available": true },
+      { "name": "Coconut Prawn", "description": "Prawns in coconut batter", "price": 340, "available": true },
+      { "name": "Tender Coconut Water", "description": "Fresh tender coconut", "price": 80, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Spice Route Kerala"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Traditional",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Thalassery Chicken Biryani", "description": "Rich biryani with unique Thalassery spices", "price": 370, "available": true },
+      { "name": "Erissery", "description": "Pumpkin and coconut curry", "price": 120, "available": true },
+      { "name": "Puttu & Kadala Curry", "description": "Steamed rice cake with black chickpea curry", "price": 170, "available": true },
+      { "name": "Unniyappam", "description": "Sweet rice and banana fritters", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Thalassery Delights"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Bakery",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Banana Cake", "description": "Moist banana cake with fresh bananas", "price": 140, "available": true },
+      { "name": "Plum Cake", "description": "Classic festive fruit cake", "price": 160, "available": true },
+      { "name": "Kozhikode Halwa Slice", "description": "Slice of local halwa", "price": 120, "available": true },
+      { "name": "Tea (Kerala)", "description": "Strong black tea with cardamom", "price": 35, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Baker's Lane Kerala"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Cafe",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Keema Pav", "description": "Minced meat served with buttered pav", "price": 180, "available": true },
+      { "name": "Paneer Wrap", "description": "Grilled paneer with veggies", "price": 150, "available": true },
+      { "name": "Cold Coffee", "description": "Iced creamy coffee", "price": 140, "available": true },
+      { "name": "Brownie", "description": "Chocolate walnut brownie", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Cafe 555 Hyderabad"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "South Indian",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Ven Pongal", "description": "Savory rice and moong dal dish", "price": 100, "available": true },
+      { "name": "Idli Fry", "description": "Idli cubes shallow fried with spices", "price": 120, "available": true },
+      { "name": "Rasam", "description": "Tangy spiced soup", "price": 60, "available": true },
+      { "name": "Banana Halwa", "description": "Sweet banana halwa", "price": 80, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "South Spice Chennai"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Biryani",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Donne Biryani (Mutton)", "description": "Rice served in leaf bowl with spicy mutton", "price": 340, "available": true },
+      { "name": "Cucumber Raita", "description": "Yogurt with cucumber and spices", "price": 60, "available": true },
+      { "name": "Mirchi Ka Salan", "description": "Tangy curry for biryani", "price": 120, "available": true },
+      { "name": "Gulab Jamun", "description": "Sweet syrupy dumplings", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Donne Biryani Bangalore"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Cafe",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Egg Roll", "description": "Soft roll with egg and sauces", "price": 140, "available": true },
+      { "name": "Bagel with Salmon", "description": "Smoked salmon and cream cheese", "price": 320, "available": true },
+      { "name": "Latte", "description": "Espresso with steamed milk", "price": 150, "available": true },
+      { "name": "Blueberry Cheesecake", "description": "Creamy cheesecake with blueberry topping", "price": 220, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Blue Tokai (Delhi)"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Pav Bhaji",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Cheese Pav Bhaji", "description": "Buttery bhaji topped with cheese", "price": 190, "available": true },
+      { "name": "Butter Pav", "description": "Soft buttered rolls", "price": 40, "available": true },
+      { "name": "Masala Papad", "description": "Crispy papad with masala", "price": 80, "available": true },
+      { "name": "Lassi (Sweet)", "description": "Sweet yogurt drink", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Sanjay's Pav Bhaji"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Bengali",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Doi Maach", "description": "Fish cooked in yogurt-based gravy", "price": 300, "available": true },
+      { "name": "Chingri Malaikari", "description": "Prawns in creamy coconut milk", "price": 380, "available": true },
+      { "name": "Beguni & Alur Chop", "description": "Fried snacks of eggplant & potato", "price": 90, "available": true },
+      { "name": "Mishti Doi", "description": "Sweet curd", "price": 95, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kolkata Classics"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Spice Kitchen",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Chicken Chettinad (Kerala Style)", "description": "Spicy chicken with coconut and spices", "price": 300, "available": true },
+      { "name": "Mutton Curry", "description": "Slow-cooked with roasted coconut", "price": 360, "available": true },
+      { "name": "Fish Pickle", "description": "Spiced preserved fish", "price": 150, "available": true },
+      { "name": "Kalan", "description": "Yogurt and yam curry", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Spice Garden Kerala"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Bakery",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Bakery Biryani Bun", "description": "Local twist bun with biryani filling", "price": 120, "available": true },
+      { "name": "Osmania Biscuit", "description": "Buttery biscuit from local bakery", "price": 40, "available": true },
+      { "name": "Chicken Puff", "description": "Flaky pastry filled with chicken", "price": 90, "available": true },
+      { "name": "Badam Milk", "description": "Almond flavored milk drink", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Osmania Delights"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Bakery",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Karaikudi Biscuit", "description": "Local specialty biscuit", "price": 50, "available": true },
+      { "name": "Mawa Cake", "description": "Dense milk-based cake", "price": 140, "available": true },
+      { "name": "Samosa (Baked)", "description": "Healthier baked samosa with spiced filling", "price": 70, "available": true },
+      { "name": "Masala Milk", "description": "Sweet milk with saffron and nuts", "price": 110, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Baker's Treat Chennai"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "South Indian",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Set Dosa", "description": "Soft double-layered dosa", "price": 95, "available": true },
+      { "name": "Coconut Chutney", "description": "Freshly grated coconut chutney", "price": 40, "available": true },
+      { "name": "Sambar", "description": "Lentil-based vegetable stew", "price": 70, "available": true },
+      { "name": "Filter Kaapi", "description": "Traditional filter coffee", "price": 45, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Shree Dosa Corner"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "North Indian",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Rajma Chawal", "description": "Kidney beans curry with steamed rice", "price": 160, "available": true },
+      { "name": "Tawa Paratha", "description": "Stuffed flatbread cooked on tawa", "price": 120, "available": true },
+      { "name": "Raita", "description": "Cucumber yogurt side", "price": 50, "available": true },
+      { "name": "Gajar Halwa", "description": "Carrot-based sweet", "price": 110, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Home Kitchen Delhi"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Goan",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Chicken Xacuti", "description": "Goan chicken curry with roasted spices", "price": 360, "available": true },
+      { "name": "Prawn Curry", "description": "Spicy coconut-based prawn curry", "price": 380, "available": true },
+      { "name": "Sannas", "description": "Steamed spongy rice cakes", "price": 120, "available": true },
+      { "name": "Feni Cocktail", "description": "Goan spirit cocktail (non-alcoholic mock available)", "price": 160, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Goan Spice Mumbai"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Bengali",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Patla Khichuri", "description": "Comforting khichdi with seasonal vegetables", "price": 150, "available": true },
+      { "name": "Luchi Dum Aloo", "description": "Deep fried rotis with potato curry", "price": 160, "available": true },
+      { "name": "Chitol Machher Muithya", "description": "Bengali fish dumplings", "price": 320, "available": true },
+      { "name": "Nolen Gur Sandesh", "description": "Sandesh made with date jaggery", "price": 120, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Bengal Bhojan"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Kerala",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Erissery (Pumpkin)", "description": "Pumpkin & coconut based curry", "price": 120, "available": true },
+      { "name": "Kappa (Boiled Tapioca)", "description": "Tapioca served with fish curry", "price": 110, "available": true },
+      { "name": "Fish Moilee", "description": "Semi-thick coconut and pepper fish curry", "price": 340, "available": true },
+      { "name": "Vattayappam", "description": "Steamed rice cake with jaggery", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kerala Home"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Biryani",
+    "rating": 4.8,
+    "menu": [
+      { "name": "Memoni Mutton Biryani", "description": "Fragrant mutton biryani with special masala", "price": 420, "available": true },
+      { "name": "Qubani Ka Meetha", "description": "Stewed dried apricot dessert", "price": 140, "available": true },
+      { "name": "Baghara Baingan", "description": "Eggplant cooked in peanut-coconut gravy", "price": 160, "available": true },
+      { "name": "Mint Lassi", "description": "Refreshing yogurt drink", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Shah Ghouse Express"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Chinese",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Hakka Noodles", "description": "Classic Indo-Chinese stir-fry noodles", "price": 170, "available": true },
+      { "name": "Manchow Soup", "description": "Spicy-sour vegetable soup", "price": 120, "available": true },
+      { "name": "Veg Manchurian", "description": "Veg balls in tangy sauce", "price": 210, "available": true },
+      { "name": "Spring Rolls", "description": "Crispy veg rolls", "price": 140, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "China Town Chennai"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Fast Food",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Paneer Burger", "description": "Grilled paneer patty with sauce", "price": 150, "available": true },
+      { "name": "Wedges", "description": "Spiced potato wedges", "price": 120, "available": true },
+      { "name": "Chocolate Shake", "description": "Thick chocolate milkshake", "price": 160, "available": true },
+      { "name": "Soda", "description": "Chilled soft drink", "price": 60, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Cafe Burger Bangalore"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Kashmiri",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Rogan Josh", "description": "Aromatic Kashmiri mutton curry", "price": 380, "available": true },
+      { "name": "Gushtaba", "description": "Meatballs in yogurt gravy", "price": 420, "available": true },
+      { "name": "Nadur Monji", "description": "Lotus stem fritters", "price": 160, "available": true },
+      { "name": "Kahwa", "description": "Saffron cardamom green tea", "price": 90, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kashmir Khaana"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Bombay",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Bombay Sandwich", "description": "Veg sandwich with green chutney and beetroot", "price": 120, "available": true },
+      { "name": "Chatpata Bhel", "description": "Tangy-spicy puffed rice salad", "price": 90, "available": true },
+      { "name": "Masala Maggi", "description": "Spicy Maggi noodles with toppings", "price": 80, "available": true },
+      { "name": "Nimbu Pani", "description": "Fresh lime soda", "price": 60, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Bombay Street Eats"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Bengali",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Kosha Mangsho (Mutton)", "description": "Rich slow-cooked mutton curry", "price": 380, "available": true },
+      { "name": "Luchi", "description": "Deep-fried puffed bread", "price": 70, "available": true },
+      { "name": "Beguni", "description": "Battered eggplant fritters", "price": 80, "available": true },
+      { "name": "Rasmalai", "description": "Soft cheese dumplings in sweet milk", "price": 140, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Kosha Kitchen"
+  },
+  {
+    "address": "Kerala",
+    "cuisineType": "Seafood",
+    "rating": 4.6,
+    "menu": [
+      { "name": "Meen Pollichathu (Spicy)", "description": "Spiced fish wrapped and roasted in banana leaf", "price": 420, "available": true },
+      { "name": "Karimeen Fry", "description": "Pearl-spot marinated and shallow fried", "price": 380, "available": true },
+      { "name": "Kerala Prawn Roast", "description": "Dry-roasted prawns with Kerala spices", "price": 360, "available": true },
+      { "name": "Parotta", "description": "Layered flaky flatbread", "price": 60, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Backwater Seafood"
+  },
+  {
+    "address": "Hyderabad",
+    "cuisineType": "Fast Food",
+    "rating": 4.0,
+    "menu": [
+      { "name": "Paneer Wrap", "description": "Grilled paneer and salad in wrap", "price": 150, "available": true },
+      { "name": "Onion Rings", "description": "Crispy battered onion rings", "price": 120, "available": true },
+      { "name": "Herb Fries", "description": "Seasoned French fries", "price": 100, "available": true },
+      { "name": "Iced Tea", "description": "Lemon flavored iced tea", "price": 80, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Quick Bites Hyderabad"
+  },
+  {
+    "address": "Chennai",
+    "cuisineType": "Tamil Nadu",
+    "rating": 4.5,
+    "menu": [
+      { "name": "Rasam Vadai", "description": "Soft vadai soaked in rasam", "price": 110, "available": true },
+      { "name": "Paal Kozhukattai", "description": "Sweet rice dumplings in milk", "price": 90, "available": true },
+      { "name": "Avial", "description": "Mixed vegetable curry with coconut", "price": 140, "available": true },
+      { "name": "Kara Kozhukattai", "description": "Savory rice dumplings", "price": 95, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Madurai Mess"
+  },
+  {
+    "address": "Bengaluru",
+    "cuisineType": "Continental",
+    "rating": 4.4,
+    "menu": [
+      { "name": "Grilled Salmon", "description": "Salmon fillet with lemon butter sauce", "price": 640, "available": true },
+      { "name": "Caesar Salad", "description": "Romaine, parmesan and anchovy dressing", "price": 320, "available": true },
+      { "name": "Garlic Mash", "description": "Creamy mashed potatoes with garlic", "price": 160, "available": true },
+      { "name": "Espresso Martini", "description": "Coffee-flavoured cocktail", "price": 420, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Continental Club Bangalore"
+  },
+  {
+    "address": "Delhi",
+    "cuisineType": "Street Food",
+    "rating": 4.3,
+    "menu": [
+      { "name": "Papdi Chaat", "description": "Crispy wafers with yogurt and chutneys", "price": 120, "available": true },
+      { "name": "Samosa Chaat", "description": "Samosa topped with chole & chutneys", "price": 140, "available": true },
+      { "name": "Kebabs on Stick", "description": "Skewered kebabs tossed in masala", "price": 220, "available": true },
+      { "name": "Cold Coffee", "description": "Sweet iced coffee", "price": 130, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Delhi Chaatwala"
+  },
+  {
+    "address": "Mumbai",
+    "cuisineType": "Fast Food",
+    "rating": 4.1,
+    "menu": [
+      { "name": "Classic Paneer Wrap", "description": "Grilled paneer with mint chutney", "price": 160, "available": true },
+      { "name": "Veg Nuggets", "description": "Crispy veg nuggets", "price": 130, "available": true },
+      { "name": "Mango Shake", "description": "Fresh mango blended shake", "price": 140, "available": true },
+      { "name": "Curly Fries", "description": "Seasoned curly fries", "price": 130, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Street Corner Mumbai"
+  },
+  {
+    "address": "Kolkata",
+    "cuisineType": "Cafe",
+    "rating": 4.2,
+    "menu": [
+      { "name": "Sada Roti & Aloo Bhaja", "description": "Roti with spiced potato fry", "price": 110, "available": true },
+      { "name": "Luchi & Dum Aloo", "description": "Puffed bread with potato curry", "price": 150, "available": true },
+      { "name": "Hot Chocolate", "description": "Creamy hot chocolate", "price": 140, "available": true },
+      { "name": "Egg Roll Special", "description": "Rolled flatbread with spiced egg", "price": 130, "available": true }
+    ],
+    "_class": "com.foodie.restaurant_service.model.Restaurant",
+    "restaurantName": "Cuppa Kolkata"
+  }
+]

@@ -1,0 +1,16 @@
+FROM eclipse-temurin:21-jre-alpine AS runtime
+
+# DECLARE IT HERE so it exists inside this build stage!
+ARG SERVICE_DIR
+
+WORKDIR /app
+RUN addgroup -S foodie && adduser -S foodie -G foodie
+USER foodie
+
+# Now this will correctly resolve the variable
+COPY ${SERVICE_DIR}/target/${SERVICE_DIR}-0.0.1-SNAPSHOT.jar app.jar
+
+ENV JAVA_OPTS="-XX:+UseContainerSupport -Djdk.tracePinnedThreads=short -XX:MaxRAMPercentage=75.0 -XX:+UseZGC -Djava.security.egd=file:/dev/./urandom"
+
+EXPOSE 8080
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

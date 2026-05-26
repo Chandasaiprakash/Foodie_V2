@@ -1,0 +1,308 @@
+# =============================================================================
+# Grafana — Observability UI
+#
+# Data sources pre-provisioned:
+#   - Tempo  (trace search, TraceQL, span metrics)
+#   - Jaeger (alternate trace search UI)
+#   - Prometheus (metrics — assumed running in cluster)
+#
+# Dashboards provisioned from ConfigMaps:
+#   - foodie-services dashboard (RED metrics + trace links)
+#   - Kafka consumer lag dashboard
+#
+# Access:
+#   kubectl port-forward svc/grafana 3000:3000 -n foodie
+#   open http://localhost:3000  (admin / admin — change in production)
+# =============================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: foodie
+  labels:
+    grafana_datasource: "true"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+
+      - name: Prometheus
+        type: prometheus
+        uid: prometheus
+        url: http://prometheus.foodie.svc.cluster.local:9090
+        access: proxy
+        isDefault: true
+        jsonData:
+          timeInterval: "15s"
+          # Link Prometheus exemplars to Tempo traces.
+          # When a metric has an exemplar with a traceId label, Grafana shows
+          # a "View trace" button that jumps straight to Jaeger/Tempo.
+          exemplarTraceIdDestinations:
+            - name: traceId
+              datasourceUid: tempo
+
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        url: http://tempo.foodie.svc.cluster.local:3200
+        access: proxy
+        jsonData:
+          # TraceQL search
+          search:
+            hide: false
+          # Node graph view of service dependencies derived from spans
+          nodeGraph:
+            enabled: true
+          # Link trace IDs found in Loki logs to Tempo spans
+          tracesToLogsV2:
+            datasourceUid: loki
+            spanStartTimeShift: "-1m"
+            spanEndTimeShift: "1m"
+            filterByTraceID: true
+            filterBySpanID: false
+          # Link spans back to Prometheus service metrics
+          tracesToMetrics:
+            datasourceUid: prometheus
+            queries:
+              - name: "Request rate"
+                query: 'rate(http_server_requests_seconds_count{service="$${__span.tags.service.name}"}[2m])'
+              - name: "Error rate"
+                query: 'rate(http_server_requests_seconds_count{service="$${__span.tags.service.name}", status!~"2.."}[2m])'
+              - name: "p99 latency"
+                query: 'histogram_quantile(0.99, rate(http_server_requests_seconds_bucket{service="$${__span.tags.service.name}"}[2m]))'
+          serviceMap:
+            datasourceUid: prometheus
+
+      - name: Jaeger
+        type: jaeger
+        uid: jaeger
+        url: http://jaeger-ui.foodie.svc.cluster.local:16686
+        access: proxy
+        jsonData:
+          tracesToLogsV2:
+            datasourceUid: loki
+            filterByTraceID: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-provider
+  namespace: foodie
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: foodie-dashboards
+        orgId: 1
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 30
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-foodie-services
+  namespace: foodie
+data:
+  foodie-services.json: |
+    {
+      "title": "Foodie — Service RED Metrics",
+      "uid": "foodie-services-red",
+      "schemaVersion": 38,
+      "refresh": "15s",
+      "time": { "from": "now-1h", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "service",
+            "type": "query",
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "query": "label_values(http_server_requests_seconds_count, application)",
+            "multi": true,
+            "includeAll": true
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "title": "Request Rate (req/s)",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 0, "w": 8, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [{
+            "expr": "sum by (application) (rate(http_server_requests_seconds_count{application=~\"$service\"}[2m]))",
+            "legendFormat": "{{application}}"
+          }]
+        },
+        {
+          "id": 2,
+          "title": "Error Rate (%)",
+          "type": "timeseries",
+          "gridPos": { "x": 8, "y": 0, "w": 8, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [{
+            "expr": "sum by (application) (rate(http_server_requests_seconds_count{application=~\"$service\", status=~\"5..\"}[2m])) / sum by (application) (rate(http_server_requests_seconds_count{application=~\"$service\"}[2m])) * 100",
+            "legendFormat": "{{application}}"
+          }],
+          "fieldConfig": {
+            "defaults": { "unit": "percent", "thresholds": { "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]}}
+          }
+        },
+        {
+          "id": 3,
+          "title": "p99 Latency (ms)",
+          "type": "timeseries",
+          "gridPos": { "x": 16, "y": 0, "w": 8, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [{
+            "expr": "histogram_quantile(0.99, sum by (application, le) (rate(http_server_requests_seconds_bucket{application=~\"$service\"}[2m]))) * 1000",
+            "legendFormat": "{{application}} p99"
+          }],
+          "fieldConfig": { "defaults": { "unit": "ms" } }
+        },
+        {
+          "id": 4,
+          "title": "Kafka Consumer Lag",
+          "type": "timeseries",
+          "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "targets": [{
+            "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag)",
+            "legendFormat": "{{consumergroup}} / {{topic}}"
+          }],
+          "fieldConfig": {
+            "defaults": { "thresholds": { "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 100 },
+              { "color": "red", "value": 500 }
+            ]}}
+          }
+        },
+        {
+          "id": 5,
+          "title": "Active Traces — jump to Tempo",
+          "type": "traces",
+          "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "targets": [{
+            "queryType": "traceql",
+            "query": "{ resource.service.name =~ \"$service\" && duration > 200ms }",
+            "limit": 20
+          }]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-admin-credentials
+  namespace: foodie
+type: Opaque
+stringData:
+  admin-user: admin
+  # Change this before deploying to production.
+  admin-password: "foodie-grafana-secret"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: foodie
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:11.1.0
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin-credentials
+                  key: admin-user
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin-credentials
+                  key: admin-password
+            - name: GF_FEATURE_TOGGLES_ENABLE
+              # traceqlEditor: enables TraceQL query editor in Explore
+              # metricsSummary: shows p50/p95/p99 summary in trace search
+              value: "traceqlEditor,metricsSummary"
+            - name: GF_USERS_DEFAULT_THEME
+              value: dark
+          ports:
+            - containerPort: 3000
+              name: http
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboard-foodie
+              mountPath: /var/lib/grafana/dashboards
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboards-provider
+        - name: dashboard-foodie
+          configMap:
+            name: grafana-dashboard-foodie-services
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: foodie
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+  type: ClusterIP
+  # kubectl port-forward svc/grafana 3000:3000 -n foodie

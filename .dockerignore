@@ -1,0 +1,7 @@
+.idea
+.m2
+logs
+**/.git
+**/node_modules
+Foodie-App-Frontend/dist
+infra/terraform/.terraform

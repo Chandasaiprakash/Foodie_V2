@@ -1,0 +1,27 @@
+# Apply all K8s base manifests in dependency order.
+#
+# Usage:
+#   kubectl apply -k infra/k8s/
+#
+# Or apply observability stack standalone:
+#   kubectl apply -f infra/k8s/observability/ -n foodie
+#
+# Then deploy services with Helm:
+#   helm upgrade --install foodie infra/helm/foddie \
+#     --namespace foodie \
+#     --set global.registry=<your-registry> \
+#     --set global.imageTag=<git-sha>
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: foodie
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+  - configmaps.yaml
+  # Observability stack: OTel Collector → Jaeger + Tempo ← Grafana
+  - observability/otel-collector.yaml
+  - observability/jaeger.yaml
+  - observability/tempo.yaml
+  - observability/grafana.yaml

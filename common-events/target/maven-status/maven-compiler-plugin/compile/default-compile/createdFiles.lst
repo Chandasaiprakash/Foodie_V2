@@ -1,0 +1,17 @@
+com\foodie\common\events\PaymentFailedEvent$PaymentFailedEventBuilder.class
+com\foodie\common\events\OrderUpdatedEvent$OrderUpdatedEventBuilder.class
+com\foodie\common\events\App.class
+com\foodie\common\events\OrderCreatedEvent$OrderCreatedEventBuilder.class
+com\foodie\common\events\PaymentCompletedEvent$PaymentCompletedEventBuilder.class
+com\foodie\common\events\PaymentFailedEvent.class
+com\foodie\common\events\DeliveryEvent.class
+com\foodie\common\events\OrderCreatedEvent$OrderItemDto.class
+com\foodie\common\correlation\OTelKafkaPropagation.class
+com\foodie\common\events\PaymentCompletedEvent.class
+com\foodie\common\correlation\OTelKafkaPropagation$1.class
+com\foodie\common\events\DeadLetterEvent.class
+com\foodie\common\events\DeliveryEvent$DeliveryEventBuilder.class
+com\foodie\common\events\OrderUpdatedEvent.class
+com\foodie\common\correlation\CorrelationContext.class
+com\foodie\common\events\OrderCreatedEvent.class
+com\foodie\common\events\DeadLetterEvent$DeadLetterEventBuilder.class

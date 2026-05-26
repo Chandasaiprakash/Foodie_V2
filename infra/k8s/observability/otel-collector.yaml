@@ -1,0 +1,166 @@
+# =============================================================================
+# OpenTelemetry Collector — Central telemetry hub
+#
+# Role: receives OTLP traces from all Foodie services, then fans out to:
+#   - Jaeger  (trace storage + UI for ad-hoc debugging)
+#   - Grafana Tempo (trace storage for Grafana dashboards / TraceQL queries)
+#
+# Why a Collector instead of direct export?
+#   - Services send to one endpoint; backend routing is config-only (no redeploy)
+#   - Collector handles retry, batching, and backpressure so services don't block
+#   - Easy to add Prometheus remote-write or Loki log export later
+#   - Sampling policies (e.g. tail-based sampling) can be applied centrally
+#
+# Install the OTel Operator first (recommended) or use this standalone deployment.
+# Standalone is shown here for simplicity — no CRD dependency.
+# =============================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: foodie
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          # gRPC — default OTel protocol, lower overhead than HTTP
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          # HTTP/protobuf — used by Spring Boot's management.otlp.tracing.endpoint
+          http:
+            endpoint: "0.0.0.0:4318"
+
+    processors:
+      # batch: groups spans into batches before export to reduce network calls.
+      # send_batch_size: export when batch reaches 512 spans
+      # timeout: export at most every 5 s even if batch is smaller
+      batch:
+        send_batch_size: 512
+        timeout: 5s
+
+      # memory_limiter: protects the Collector pod from OOM under burst load.
+      # If memory exceeds 80% of limit, new spans are dropped rather than
+      # crashing the Collector and losing all buffered spans.
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+
+      # resource: stamps every span with cluster-level metadata.
+      # Useful in Jaeger/Tempo to filter by cluster or environment.
+      resource:
+        attributes:
+          - key: cluster
+            value: "foodie-k8s"
+            action: upsert
+          - key: environment
+            value: "production"
+            action: upsert
+
+    exporters:
+      # Jaeger — receives OTLP over gRPC (Jaeger 1.35+ supports native OTLP)
+      otlp/jaeger:
+        endpoint: "jaeger-collector.foodie.svc.cluster.local:4317"
+        tls:
+          insecure: true
+
+      # Grafana Tempo — receives OTLP over gRPC
+      otlp/tempo:
+        endpoint: "tempo.foodie.svc.cluster.local:4317"
+        tls:
+          insecure: true
+
+      # Debug exporter — logs one span per second to Collector stdout.
+      # Set sampling_initial/thereafter to 0 in production to silence.
+      debug:
+        verbosity: basic
+        sampling_initial: 5
+        sampling_thereafter: 100
+
+    service:
+      pipelines:
+        traces:
+          receivers:  [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters:  [otlp/jaeger, otlp/tempo, debug]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: foodie
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.104.0
+          args: ["--config=/conf/config.yaml"]
+          ports:
+            - containerPort: 4317   # OTLP gRPC
+              name: otlp-grpc
+            - containerPort: 4318   # OTLP HTTP
+              name: otlp-http
+            - containerPort: 8888   # Collector self-metrics (Prometheus)
+              name: metrics
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133   # Collector health-check extension
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+# ClusterIP Service — Foodie services send traces to otel-collector:4318
+# The configmaps.yaml MANAGEMENT_OTLP_TRACING_ENDPOINT points here.
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: foodie
+  labels:
+    app: otel-collector
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+    - name: metrics
+      port: 8888
+      targetPort: metrics
+  type: ClusterIP

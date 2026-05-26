@@ -1,0 +1,8 @@
+com\foodie\gateway_service\config\CorsConfig.class
+com\foodie\gateway_service\controller\FallbackController.class
+com\foodie\gateway_service\filter\JwtAuthenticationGatewayFilterFactory$Config.class
+com\foodie\gateway_service\util\JwtUtil.class
+com\foodie\gateway_service\filter\CorrelationIdGlobalFilter.class
+com\foodie\gateway_service\GatewayServiceApplication.class
+com\foodie\gateway_service\filter\JwtAuthenticationGatewayFilterFactory.class
+com\foodie\gateway_service\config\CacheConfig.class

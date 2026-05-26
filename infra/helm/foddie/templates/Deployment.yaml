@@ -1,0 +1,130 @@
+{{- range $name, $config := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    app: {{ $name }}
+    version: {{ $.Values.global.imageTag }}
+spec:
+  replicas: {{ $config.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ $.Values.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ $.Values.rollingUpdate.maxSurge }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        version: {{ $.Values.global.imageTag }}
+      annotations:
+        # Force pod restart when the ConfigMap content changes.
+        checksum/config: {{ $config.configMapRef | sha256sum }}
+    spec:
+      # Give pods up to 60 s to finish in-flight Kafka messages before SIGKILL.
+      # Kafka consumers commit offsets only after the listener returns, so abrupt
+      # shutdown can re-deliver a message. 60 s covers the longest expected
+      # processing time (Razorpay call + DB write) with margin.
+      terminationGracePeriodSeconds: 60
+
+      containers:
+        - name: {{ $name }}
+          image: {{ $.Values.global.registry }}/foodie-{{ $name }}:{{ $.Values.global.imageTag }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ $config.port }}
+              name: http
+
+          # ── Configuration ──────────────────────────────────────────────────
+          envFrom:
+            - configMapRef:
+                name: {{ $config.configMapRef }}
+            {{- range $config.secretRefs }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+
+          env:
+            {{- if $config.datasourceUrl }}
+            - name: SPRING_DATASOURCE_URL
+              value: {{ $config.datasourceUrl | quote }}
+            {{- end }}
+            {{- if $config.mongoUri }}
+            - name: SPRING_DATA_MONGODB_URI
+              value: {{ $config.mongoUri | quote }}
+            {{- end }}
+
+          # ── Resource limits ────────────────────────────────────────────────
+          resources:
+            requests:
+              memory: {{ $config.resources.requests.memory }}
+              cpu: {{ $config.resources.requests.cpu }}
+            limits:
+              memory: {{ $config.resources.limits.memory }}
+              cpu: {{ $config.resources.limits.cpu }}
+
+          # ── Startup probe ──────────────────────────────────────────────────
+          # Blocks liveness/readiness checks until Spring Boot has fully started.
+          # Allows up to startupProbe.failureThreshold * periodSeconds before
+          # the pod is killed (e.g. 30 * 5s = 150 s for slow JVM warm-up or
+          # Liquibase/Flyway migrations). Once startup succeeds, liveness takes
+          # over with its normal tight window.
+          startupProbe:
+            httpGet:
+              path: {{ $.Values.startupProbe.httpGet.path }}
+              port: http
+            failureThreshold: {{ $.Values.startupProbe.failureThreshold }}
+            periodSeconds: {{ $.Values.startupProbe.periodSeconds }}
+
+          # ── Liveness probe ─────────────────────────────────────────────────
+          # Restarts a pod that has deadlocked or entered an unrecoverable state
+          # (e.g. circuit breaker storm, OOM-adjacent). Only fires AFTER startup
+          # probe passes.
+          livenessProbe:
+            httpGet:
+              path: {{ $.Values.livenessProbe.httpGet.path }}
+              port: http
+            initialDelaySeconds: {{ $.Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ $.Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ $.Values.livenessProbe.timeoutSeconds }}
+
+          # ── Readiness probe ────────────────────────────────────────────────
+          # Removes the pod from the Service endpoints while it is warming up,
+          # processing a large backlog, or waiting for a dependency (DB, Kafka).
+          # kube-proxy stops routing new traffic to unready pods — this is the
+          # "pause incoming requests" signal, not a kill trigger.
+          readinessProbe:
+            httpGet:
+              path: {{ $.Values.readinessProbe.httpGet.path }}
+              port: http
+            initialDelaySeconds: {{ $.Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ $.Values.readinessProbe.failureThreshold }}
+            successThreshold: {{ $.Values.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ $.Values.readinessProbe.timeoutSeconds }}
+
+---
+# ── ClusterIP Service ─────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    app: {{ $name }}
+spec:
+  selector:
+    app: {{ $name }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: http
+  type: ClusterIP
+{{- end }}

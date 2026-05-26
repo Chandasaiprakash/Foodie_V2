@@ -1,0 +1,350 @@
+# =============================================================================
+# FOODIE Helm Values
+#
+# Service discovery → Kubernetes ClusterIP Services + DNS
+# Centralised config → per-service ConfigMaps + Secrets (infra/k8s/)
+#
+# Autoscaling strategy (two-tier):
+#   HTTP services  → standard HPA (CPU + memory)
+#   Kafka consumers → KEDA ScaledObjects (consumer group lag)
+#
+# Resource sizing rationale:
+#   JVM baseline heap: ~150-200 MB idle, peaks at ~400 MB under load.
+#   requests.memory = safe idle floor (scheduler uses this for bin-packing).
+#   limits.memory   = headroom above expected peak (OOMKill only if exceeded).
+#   requests.cpu    = guaranteed millicores (throttled if node is contended).
+#   limits.cpu      = hard ceiling (CFS throttling kicks in above this).
+#   gateway-service uses WebFlux/Netty — lower memory footprint than Tomcat.
+# =============================================================================
+
+global:
+  registry: ""          # set via --set at deploy time, e.g. 123456789.dkr.ecr.ap-south-1.amazonaws.com
+  imageTag: "latest"    # set via --set at deploy time (git SHA)
+  namespace: foodie
+
+# Kafka bootstrap address used by KEDA ScaledObjects.
+# Must match SPRING_KAFKA_BOOTSTRAP_SERVERS in configmaps.yaml.
+kafka:
+  bootstrapServers: "kafka.foodie.svc.cluster.local:9092"
+
+# =============================================================================
+# Per-service configuration
+# =============================================================================
+services:
+
+  # ---------------------------------------------------------------------------
+  # gateway-service — public ingress, Spring Cloud Gateway (WebFlux/Netty)
+  # HPA: CPU-based. No Kafka consumption.
+  # ---------------------------------------------------------------------------
+  gateway-service:
+    replicaCount: 2
+    port: 8080
+    configMapRef: gateway-service-config
+    secretRefs:
+      - foodie-jwt-secret
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    hpa:
+      minReplicas: 2
+      maxReplicas: 8
+      # Gateway is I/O-bound (proxying), not CPU-bound. 70% is a safe threshold.
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  # ---------------------------------------------------------------------------
+  # auth-service — JWT sign/verify (CPU-bound), Feign → user-service
+  # HPA: CPU-based. Kafka: none.
+  # ---------------------------------------------------------------------------
+  auth-service:
+    replicaCount: 2
+    port: 8081
+    configMapRef: auth-service-config
+    secretRefs:
+      - foodie-db-credentials
+      - foodie-jwt-secret
+      - foodie-internal-secret
+    datasourceUrl: "jdbc:mysql://mysql.foodie.svc.cluster.local:3306/foodie_auth?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    hpa:
+      minReplicas: 2
+      maxReplicas: 6
+      # JWT ops are CPU-heavy; lower threshold so we scale before latency rises.
+      targetCPUUtilizationPercentage: 60
+      targetMemoryUtilizationPercentage: 80
+
+  # ---------------------------------------------------------------------------
+  # user-service — lightweight CRUD, MySQL
+  # HPA: CPU-based. Kafka: none.
+  # ---------------------------------------------------------------------------
+  user-service:
+    replicaCount: 2
+    port: 8085
+    configMapRef: user-service-config
+    secretRefs:
+      - foodie-db-credentials
+      - foodie-internal-secret
+    datasourceUrl: "jdbc:mysql://mysql.foodie.svc.cluster.local:3306/foodie_user?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "400m"
+    hpa:
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  # ---------------------------------------------------------------------------
+  # restaurant-service — MongoDB + Elasticsearch search
+  # HPA: CPU-based (search queries are CPU + I/O heavy). Kafka: none.
+  # ---------------------------------------------------------------------------
+  restaurant-service:
+    replicaCount: 2
+    port: 8084
+    configMapRef: restaurant-service-config
+    secretRefs:
+      - foodie-mongo-credentials
+    mongoUri: "mongodb://restaurant-mongo.foodie.svc.cluster.local:27017/foodie_restaurant"
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "250m"
+      limits:
+        memory: "768Mi"
+        cpu: "600m"
+    hpa:
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 65
+      targetMemoryUtilizationPercentage: 80
+
+  # ---------------------------------------------------------------------------
+  # cart-service — MongoDB + Redis, session-scoped
+  # HPA: CPU-based. Kafka: none.
+  # ---------------------------------------------------------------------------
+  cart-service:
+    replicaCount: 1
+    port: 8088
+    configMapRef: cart-service-config
+    secretRefs:
+      - foodie-mongo-credentials
+    mongoUri: "mongodb://cart-mongo.foodie.svc.cluster.local:27017/foodie_cart"
+    resources:
+      requests:
+        memory: "192Mi"
+        cpu: "150m"
+      limits:
+        memory: "384Mi"
+        cpu: "300m"
+    hpa:
+      minReplicas: 1
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+  # ---------------------------------------------------------------------------
+  # order-service — Kafka consumer (payment-completed, payment-failed,
+  #                 delivery-events) + MySQL + outbox poller
+  # Scaling: KEDA lag-based. HPA intentionally omitted.
+  # lagThreshold 100: one replica handles 100 messages before another spins up.
+  # offsetResetPolicy latest: new deployments skip stale messages already
+  # processed by the previous replica set.
+  # ---------------------------------------------------------------------------
+  order-service:
+    replicaCount: 2
+    port: 8082
+    configMapRef: order-service-config
+    secretRefs:
+      - foodie-db-credentials
+    datasourceUrl: "jdbc:mysql://mysql.foodie.svc.cluster.local:3306/foodie_order?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    keda:
+      minReplicaCount: 1
+      maxReplicaCount: 10
+      cooldownPeriod: 300    # seconds to wait after last scale event before scaling down
+      pollingInterval: 15    # seconds between lag metric polls
+      triggers:
+        - topic: payment-completed
+          consumerGroup: order-service-group
+          lagThreshold: "100"
+          offsetResetPolicy: latest
+        - topic: payment-failed
+          consumerGroup: order-service-group
+          lagThreshold: "100"
+          offsetResetPolicy: latest
+        - topic: delivery-events
+          consumerGroup: order-service-group
+          lagThreshold: "100"
+          offsetResetPolicy: latest
+
+  # ---------------------------------------------------------------------------
+  # payment-service — Kafka consumer (order-created) + MySQL + Razorpay
+  # Scaling: KEDA lag-based. HPA intentionally omitted.
+  # lagThreshold 50: money path — keep lag low for fast payment initiation.
+  # ---------------------------------------------------------------------------
+  payment-service:
+    replicaCount: 2
+    port: 8083
+    configMapRef: payment-service-config
+    secretRefs:
+      - foodie-db-credentials
+      - razorpay-credentials
+    datasourceUrl: "jdbc:mysql://mysql.foodie.svc.cluster.local:3306/foodie_payment?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+    keda:
+      minReplicaCount: 2   # keep 2 minimum — payment must never cold-start
+      maxReplicaCount: 12
+      cooldownPeriod: 300
+      pollingInterval: 10  # poll more frequently — money path
+      triggers:
+        - topic: order-created
+          consumerGroup: payment-service-group
+          lagThreshold: "50"   # tighter threshold — we scale earlier for payment
+          offsetResetPolicy: latest
+
+  # ---------------------------------------------------------------------------
+  # delivery-service — Kafka consumer (payment-completed) + MongoDB + Feign
+  # Scaling: KEDA lag-based. HPA intentionally omitted.
+  # ---------------------------------------------------------------------------
+  delivery-service:
+    replicaCount: 2
+    port: 8086
+    configMapRef: delivery-service-config
+    secretRefs:
+      - foodie-mongo-credentials
+    mongoUri: "mongodb://delivery-mongo.foodie.svc.cluster.local:27017/foodie_delivery"
+    resources:
+      requests:
+        memory: "384Mi"
+        cpu: "200m"
+      limits:
+        memory: "768Mi"
+        cpu: "400m"
+    keda:
+      minReplicaCount: 1
+      maxReplicaCount: 8
+      cooldownPeriod: 300
+      pollingInterval: 15
+      triggers:
+        - topic: payment-completed
+          consumerGroup: delivery-service-group
+          lagThreshold: "100"
+          offsetResetPolicy: latest
+
+  # ---------------------------------------------------------------------------
+  # notification-service — Kafka consumer (order-updated, delivery-events)
+  #                        + Redis idempotency + WebSocket
+  # Scaling: KEDA lag-based. HPA intentionally omitted.
+  # lagThreshold 200: notifications tolerate more lag than transactional services.
+  # minReplicaCount 1: WebSocket connections need a stable pod; scale-to-zero
+  # would drop active connections. Sticky sessions or a message broker (already
+  # Redis-backed here) are needed before allowing minReplicaCount: 0.
+  # ---------------------------------------------------------------------------
+  notification-service:
+    replicaCount: 1
+    port: 8087
+    configMapRef: notification-service-config
+    secretRefs: []
+    resources:
+      requests:
+        memory: "192Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "300m"
+    keda:
+      minReplicaCount: 1
+      maxReplicaCount: 6
+      cooldownPeriod: 300
+      pollingInterval: 15
+      triggers:
+        - topic: order-updated
+          consumerGroup: notification-service-group
+          lagThreshold: "200"
+          offsetResetPolicy: latest
+        - topic: delivery-events
+          consumerGroup: notification-service-group
+          lagThreshold: "200"
+          offsetResetPolicy: latest
+
+# =============================================================================
+# Probe defaults
+#
+# Probe hierarchy:
+#   startupProbe  → fires FIRST; blocks liveness/readiness until Spring Boot
+#                   has fully initialised (Hibernate, Kafka, connection pools).
+#                   Budget = failureThreshold * periodSeconds = 30 * 5 = 150 s.
+#   livenessProbe → restarts a deadlocked pod; runs continuously after startup.
+#   readinessProbe → removes pod from load-balancer endpoints during warming;
+#                    also fires when a downstream dependency is unhealthy
+#                    (Spring Boot's actuator/health includes DB, Kafka, Redis
+#                    indicators automatically).
+#
+# Spring Boot actuator endpoints used:
+#   /actuator/health/liveness  — checks internal state (SIGTERM in progress etc.)
+#   /actuator/health/readiness — checks readiness groups (DB, Kafka, Redis probes)
+#   /actuator/health/startup   — fires once after ApplicationContext is ready
+#
+# These endpoints are available from Spring Boot 2.3+ when:
+#   management.endpoint.health.probes.enabled=true   (auto-enabled on K8s)
+#   management.endpoints.web.exposure.include=health
+# =============================================================================
+
+startupProbe:
+  httpGet:
+    path: /actuator/health/startup
+  # Allow up to 150 s for the JVM to start and run DB migrations.
+  failureThreshold: 30
+  periodSeconds: 5
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+  # Only starts checking after startup probe passes.
+  initialDelaySeconds: 0
+  periodSeconds: 15
+  # Allow 2 consecutive failures before killing (avoids restart on a single
+  # slow GC pause or transient network blip).
+  failureThreshold: 3
+  timeoutSeconds: 5
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  # Require 1 success to mark ready (default), but allow 3 failures before
+  # pulling from load balancer — gives Kafka or DB a moment to recover.
+  failureThreshold: 3
+  successThreshold: 1
+  timeoutSeconds: 5
+
+rollingUpdate:
+  maxUnavailable: 0   # never reduce capacity during rollout
+  maxSurge: 1         # spin up 1 extra pod, wait for ready, then remove old

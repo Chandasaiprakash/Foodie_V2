@@ -1,0 +1,11 @@
+com\foodie\order_service\integration\ReplaySafetyIT.class
+com\foodie\order_service\integration\KafkaIntegrationTestBase.class
+com\foodie\order_service\integration\KafkaPublishConsumeIT.class
+com\foodie\order_service\OrderServiceTest.class
+com\foodie\order_service\integration\SagaCompensationIT.class
+com\foodie\order_service\integration\IdempotencyIT.class
+com\foodie\order_service\integration\DlqRoutingIT.class
+com\foodie\order_service\integration\RetryHandlingIT.class
+com\foodie\order_service\integration\DbCommitAckFailureIT.class
+com\foodie\order_service\integration\DuplicateEventIT.class
+com\foodie\order_service\OrderControllerTest.class

@@ -1,0 +1,163 @@
+# =============================================================================
+# Grafana Tempo — Distributed Tracing Backend
+#
+# Tempo complements Jaeger: it integrates natively with Grafana dashboards,
+# enabling "jump to trace" from Prometheus metric panels and Loki log lines.
+# Both backends receive the same spans from the OTel Collector.
+#
+# Storage: local filesystem (suitable for single-node dev/staging).
+# For production: configure S3 / GCS / Azure Blob in the [storage] section.
+#
+# TraceQL: Tempo's query language. Example queries in Grafana Explore:
+#   { resource.service.name = "order-service" && duration > 500ms }
+#   { span.http.status_code = 500 }
+#   { resource.service.name =~ "payment.*" && rootName = "POST /api/payments" }
+#
+# Access:
+#   kubectl port-forward svc/tempo 3200:3200 -n foodie
+#   Add Tempo as a data source in Grafana: http://tempo.foodie.svc.cluster.local:3200
+# =============================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tempo-config
+  namespace: foodie
+data:
+  tempo.yaml: |
+    server:
+      http_listen_port: 3200
+
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: "0.0.0.0:4317"
+            http:
+              endpoint: "0.0.0.0:4318"
+
+    ingester:
+      trace_idle_period: 10s
+      max_block_bytes: 1_000_000
+      max_block_duration: 5m
+
+    compactor:
+      compaction:
+        compaction_window: 1h
+        max_compaction_objects: 1000000
+        block_retention: 48h         # keep traces for 48 h; increase for longer windows
+        compacted_block_retention: 10m
+
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /tmp/tempo/blocks
+        wal:
+          path: /tmp/tempo/wal
+
+    # Metrics-generator: derives RED metrics (Rate, Errors, Duration) from spans.
+    # These metrics are written to the internal Prometheus-compatible endpoint and
+    # can be scraped into a Prometheus/Mimir instance or accessed via Grafana.
+    metrics_generator:
+      registry:
+        external_labels:
+          source: tempo
+          cluster: foodie-k8s
+      storage:
+        path: /tmp/tempo/generator/wal
+        remote_write:
+          # Write span-derived metrics to the in-cluster Prometheus.
+          # Adjust the URL to match your Prometheus service name.
+          - url: http://prometheus.foodie.svc.cluster.local:9090/api/v1/write
+            send_exemplars: true
+
+    overrides:
+      metrics_generator_processors: [service-graphs, span-metrics]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  namespace: foodie
+  labels:
+    app: tempo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo
+  template:
+    metadata:
+      labels:
+        app: tempo
+      annotations:
+        # Prometheus scrape annotations — Prometheus operator / scrape config picks these up
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3200"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: tempo
+          image: grafana/tempo:2.5.0
+          args: ["-config.file=/conf/tempo.yaml"]
+          ports:
+            - containerPort: 3200    # HTTP API + metrics
+              name: http
+            - containerPort: 4317    # OTLP gRPC (from OTel Collector)
+              name: otlp-grpc
+            - containerPort: 4318    # OTLP HTTP
+              name: otlp-http
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+            - name: storage
+              mountPath: /tmp/tempo
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+      volumes:
+        - name: config
+          configMap:
+            name: tempo-config
+        - name: storage
+          emptyDir: {}   # Replace with PVC for production persistence
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo
+  namespace: foodie
+  labels:
+    app: tempo
+spec:
+  selector:
+    app: tempo
+  ports:
+    - name: http
+      port: 3200
+      targetPort: http
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+  type: ClusterIP

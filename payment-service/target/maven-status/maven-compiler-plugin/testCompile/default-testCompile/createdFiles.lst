@@ -1,0 +1,5 @@
+com\foodie\payment_service\config\TestRazorpayConfig.class
+com\foodie\payment_service\PaymentServiceTest.class
+com\foodie\payment_service\integration\PaymentSuccessKafkaFailureIT.class
+com\foodie\payment_service\integration\KafkaIntegrationTestBase.class
+com\foodie\payment_service\integration\PaymentKafkaFlowIT.class
