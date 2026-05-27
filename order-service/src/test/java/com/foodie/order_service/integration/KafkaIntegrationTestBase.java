@@ -9,6 +9,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.Duration;
+
 /**
  * Reusable Testcontainers base for all order-service integration tests.
  *
@@ -24,10 +26,14 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 public abstract class KafkaIntegrationTestBase {
 
+    private static final DockerImageName KAFKA_IMAGE =
+            DockerImageName.parse("apache/kafka-native:3.8.0")
+                    .asCompatibleSubstituteFor("confluentinc/cp-kafka");
+
     @Container
-    static final KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.6.1")
-    ).withKraft(); // <-- Activates standalone KRaft metadata orchestration
+    static final KafkaContainer kafka =
+            new KafkaContainer(KAFKA_IMAGE)
+                    .withStartupTimeout(Duration.ofMinutes(3));
 
     @Container
     static final MySQLContainer<?> mysql = new MySQLContainer<>(
