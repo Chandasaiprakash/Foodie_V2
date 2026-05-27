@@ -1,215 +1,351 @@
 # Foodie V2
 
-Foodie V2 is a microservices food ordering platform with a React frontend,
-Spring Boot services, Kafka event flows, MySQL, MongoDB, Redis, Elasticsearch,
-and an observability stack for traces and metrics.
+Foodie V2 is a production-style distributed food ordering platform built with Spring Boot microservices, Kafka event choreography, transactional outbox, idempotent consumers, Redis caching, Kubernetes deployment automation, and end-to-end observability.
 
-## Services
+The project focuses on real backend engineering concerns:
 
-| Component | Port | Purpose | Data/dependencies |
-| --- | ---: | --- | --- |
-| frontend | 80 in container | React/Vite UI served by Nginx | gateway-service |
-| gateway-service | 8080 | Public API and WebSocket gateway | downstream services |
-| auth-service | 8081 | Registration, login, JWT issuing | MySQL, user-service |
-| user-service | 8085 | User profile and internal auth lookup | MySQL |
-| restaurant-service | 8084 | Restaurants, menu, search | MongoDB, Elasticsearch |
-| cart-service | 8088 | Cart state | MongoDB |
-| order-service | 8082 | Orders and order saga state | MySQL, Kafka |
-| payment-service | 8083 | Payment creation, verification, events | MySQL, Kafka, Razorpay |
-| delivery-service | 8086 | Delivery assignment and delivery events | MongoDB, Kafka, order-service |
-| notification-service | 8087 | Notifications and WebSocket updates | Kafka, Redis |
-| common-events | n/a | Shared event DTO library | Maven dependency |
+- Distributed system reliability
+- Event-driven architecture
+- Saga-style workflows
+- Kafka retry + DLQ handling
+- Idempotent event processing
+- Transactional outbox pattern
+- OpenTelemetry distributed tracing
+- CI/CD automation
+- Containerized cloud-native deployment
+
+---
+
+# Architecture Overview
+
+## Core Architecture Patterns
+
+| Pattern | Implementation |
+|---|---|
+| Microservices | Spring Boot services with independent persistence |
+| Event-Driven Architecture | Kafka-based async workflows |
+| Transactional Outbox | Reliable event publishing without dual-write inconsistency |
+| Idempotent Consumers | Duplicate Kafka replay protection |
+| Retry + DLQ | RetryableTopic + dead-letter replay handling |
+| Saga/Event Choreography | Cross-service order lifecycle orchestration |
+| CQRS-style Read Optimization | Redis-backed read acceleration |
+| Distributed Tracing | OpenTelemetry + Jaeger |
+| Horizontal Scaling | Kubernetes + KEDA autoscaling |
+
+---
+
+# System Flow
+
+```text
+Frontend
+   ↓
+API Gateway
+   ↓
+Order Service
+   ↓
+Kafka Events
+   ↓
+Payment Service
+   ↓
+Delivery Service
+   ↓
+Notification Service
+```
+
+Services communicate asynchronously using Kafka events to reduce coupling and improve resiliency.
+
+---
+
+# Tech Stack
+
+## Backend
+
+- Java 21
+- Spring Boot 3
+- Spring Cloud
+- Spring Security + JWT
+- Spring Data JPA
+- Spring Kafka
+- Maven
+
+## Frontend
+
+- React
+- Vite
+- Axios
+- Nginx
+
+## Databases
+
+- MySQL
+- MongoDB
+- Redis
+- Elasticsearch
+
+## DevOps & Infrastructure
+
+- Docker
+- Kubernetes
+- Helm
+- KEDA
+- GitHub Actions
+- Testcontainers
+
+## Observability
+
+- OpenTelemetry
+- Prometheus
+- Grafana
+- Jaeger
+- Tempo
+
+---
+
+# Services
+
+| Service | Responsibility | Storage |
+|---|---|---|
+| gateway-service | API gateway + routing | - |
+| auth-service | JWT auth + login | MySQL |
+| user-service | User profile management | MySQL |
+| restaurant-service | Restaurants + menu search | MongoDB + Elasticsearch |
+| cart-service | Shopping cart state | MongoDB |
+| order-service | Order lifecycle + saga state | MySQL |
+| payment-service | Payment processing + retries | MySQL |
+| delivery-service | Delivery assignment workflow | MongoDB |
+| notification-service | Real-time notifications | Redis |
+| common-events | Shared Kafka DTO contracts | Maven module |
+
+---
+
+# Reliability Features
+
+## Transactional Outbox
+
+Foodie V2 uses the Transactional Outbox Pattern to avoid dual-write inconsistencies between database commits and Kafka publishing.
+
+```text
+DB Commit
+   ↓
+Outbox Event Persisted
+   ↓
+Async Publisher
+   ↓
+Kafka Publish
+```
+
+This guarantees eventual consistency even during broker outages.
+
+---
+
+## Idempotent Kafka Consumers
+
+Kafka consumers maintain processed-event tracking to suppress duplicate event replays.
+
+Scenarios covered:
+
+- Broker redelivery
+- Consumer restart replay
+- DLQ replay duplication
+- At-least-once delivery semantics
+
+---
+
+## Retry + Dead Letter Queue Handling
+
+Kafka listeners use retry topics and DLQ recovery flows.
+
+Implemented features:
+
+- Exponential retry backoff
+- Retry topic routing
+- Dead-letter persistence
+- Manual replay support
+- Replay idempotency protection
+
+---
+
+# Observability
+
+The platform includes end-to-end distributed tracing.
+
+Implemented:
+
+- Correlation ID propagation
+- OpenTelemetry instrumentation
+- Jaeger trace visualization
+- Prometheus metrics
+- Grafana dashboards
+- Kafka trace propagation
+
+---
+
+# Testing Strategy
+
+The project contains:
+
+| Test Type | Coverage |
+|---|---|
+| Unit Tests | Service logic |
+| Integration Tests | Kafka + DB flows |
+| Testcontainers | Real infrastructure validation |
+| Replay Tests | Duplicate event suppression |
+| Retry Tests | Kafka retry behavior |
+| DLQ Tests | Replay + recovery flows |
+
+Integration tests validate:
+
+- Transactional consistency
+- Kafka replay safety
+- Outbox correctness
+- Eventual consistency
+- Retry recovery semantics
+
+---
+
+# Local Development
 
 ## Requirements
 
 - Java 21
 - Maven 3.9+
-- Node.js 22+ and npm
-- Docker or Docker Desktop
-- kubectl for Kubernetes
-- Helm 3 for Kubernetes app deployment
+- Node.js 22+
+- Docker Desktop
+- kubectl
+- Helm 3
 
-On Windows PowerShell, use `npm.cmd` if `npm` is blocked by the script execution
-policy.
+---
 
-## Local Docker Compose
+## Run Locally
 
-Build the backend jars first because the service Docker images copy packaged
-jars from each service target directory.
+### Backend
 
-```powershell
-mvn -B -ntp -DskipTests package
+```bash
+mvn clean verify
+```
+
+### Frontend
+
+```bash
+cd Foodie-App-Frontend
+npm install
+npm run dev
+```
+
+---
+
+# Docker Compose
+
+```bash
+mvn -DskipTests package
+
 docker compose up --build
 ```
 
-Useful local URLs:
+Useful URLs:
 
-- Frontend: `http://localhost:3000`
-- Gateway: `http://localhost:8080`
-- Kafka UI: `http://localhost:8090`
-- Jaeger UI: `http://localhost:16686`
+| Component | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Gateway | http://localhost:8080 |
+| Kafka UI | http://localhost:8090 |
+| Jaeger | http://localhost:16686 |
+| Grafana | http://localhost:3001 |
 
-Stop everything with:
+---
 
-```powershell
-docker compose down
+# Kubernetes Deployment
+
+Infrastructure includes:
+
+- Helm deployment charts
+- KEDA autoscaling
+- OpenTelemetry collector
+- Prometheus stack
+- Kafka deployment
+- Elasticsearch deployment
+- ConfigMap + Secret management
+
+Deploy:
+
+```bash
+kubectl apply -k infra/k8s
+
+helm upgrade --install foodie ./infra/helm/foddie \
+  --namespace foodie \
+  -f ./infra/helm/foddie/Values.yaml
 ```
 
-## Local Development
+---
 
-Backend checks:
+# CI/CD Pipeline
 
-```powershell
-mvn -B -ntp test
-```
+GitHub Actions pipeline performs:
 
-Frontend checks:
+- Maven verify
+- Frontend Vite build
+- Docker image builds
+- Integration test execution
+- Helm validation
+- Kubernetes manifest validation
 
-```powershell
-cd Foodie-App-Frontend
-npm.cmd ci
-npm.cmd run build
-```
+Pipeline includes multi-service reactor builds with caching optimization.
 
-## Kubernetes
+---
 
-Kubernetes is split into two layers:
+# Performance Engineering
 
-- `infra/k8s`: namespace, local platform dependencies, secrets, config maps, and observability.
-- `infra/helm/foddie`: Helm chart for the frontend and all application services.
+Optimizations implemented:
 
-The Kubernetes base uses `emptyDir` volumes so it is easy to run locally. Replace
-those with managed databases, persistent volumes, and external secret management
-before using this in production.
+- Redis caching for hot reads
+- Async Kafka workflows
+- Virtual-thread Kafka consumers
+- Reduced synchronous coupling
+- Elasticsearch-based search
+- Distributed trace correlation
+- Container-aware JVM tuning
 
-### 1. Build application images
+---
 
-```powershell
-mvn -B -ntp -DskipTests package
+# Security
 
-$services = @(
-  "gateway-service",
-  "auth-service",
-  "user-service",
-  "restaurant-service",
-  "order-service",
-  "payment-service",
-  "delivery-service",
-  "notification-service",
-  "cart-service"
-)
+- JWT authentication
+- Internal service token validation
+- Spring Security filters
+- Environment-backed secrets
+- Gateway-level request routing
 
-foreach ($service in $services) {
-  docker build `
-    -f Dockerfile.service `
-    --build-arg SERVICE_DIR=$service `
-    -t "foodie-$service:local" `
-    .
-}
+---
 
-docker build -t foodie-frontend:local .\Foodie-App-Frontend
-```
+# Production Notes
 
-If you use kind or minikube, load the local images into the cluster after
-building them. Docker Desktop Kubernetes can usually see locally built images
-without this step.
+This repository is optimized primarily for local distributed-system experimentation and backend engineering demonstrations.
 
-### 2. Install autoscaling prerequisites
+Production deployment would additionally require:
 
-KEDA is required because the chart creates Kafka lag based `ScaledObject`
-resources. Metrics Server is needed for HPA CPU and memory metrics.
+- Managed databases
+- External secret management
+- Persistent storage
+- Multi-node Kafka
+- Backup strategy
+- Ingress hardening
+- TLS termination
+- Production monitoring policies
 
-```powershell
-helm repo add kedacore https://kedacore.github.io/charts
-helm repo update
-helm upgrade --install keda kedacore/keda --namespace keda --create-namespace
+---
 
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-```
+# Why This Project Matters
 
-### 3. Apply the platform layer
+Most tutorial microservice projects stop at CRUD APIs.
 
-```powershell
-kubectl apply -k .\infra\k8s
-kubectl get pods -n foodie
-```
+Foodie V2 focuses on the hard parts of backend engineering:
 
-This starts MySQL, MongoDB, Redis, Elasticsearch, Kafka, Prometheus, Jaeger,
-Tempo, Grafana, and the OpenTelemetry Collector.
+- Distributed consistency
+- Failure recovery
+- Event replay safety
+- Async workflow orchestration
+- Observability
+- Infrastructure automation
+- Resilient message processing
 
-### 4. Deploy the application chart
-
-```powershell
-helm upgrade --install foodie .\infra\helm\foddie `
-  --namespace foodie `
-  -f .\infra\helm\foddie\Values.yaml `
-  --set global.imageTag=local
-```
-
-Access the app:
-
-```powershell
-kubectl port-forward -n foodie svc/frontend 3000:80
-```
-
-Then open `http://localhost:3000`.
-
-Useful observability forwards:
-
-```powershell
-kubectl port-forward -n foodie svc/grafana 3001:3000
-kubectl port-forward -n foodie svc/jaeger-ui 16686:16686
-kubectl port-forward -n foodie svc/prometheus 9090:9090
-```
-
-Grafana defaults for the local manifest are `admin` / `foodie-grafana-secret`.
-
-## Configuration And Secrets
-
-Kubernetes config lives in `infra/k8s/configmaps.yaml` and
-`infra/k8s/secrets.yaml`.
-
-The committed secrets are local development placeholders only:
-
-- MySQL uses `root` / `root`.
-- Razorpay values are dummy local values.
-- JWT and internal service secrets are local values and must be replaced outside development.
-
-The auth, gateway, and user services now read JWT/internal shared secrets from
-environment-backed Spring properties, so Kubernetes Secrets can control those
-values without code changes.
-
-## CI Workflow
-
-GitHub Actions workflow: `.github/workflows/ci.yml`.
-
-It runs:
-
-- Maven `verify` for the backend reactor.
-- `npm ci` and Vite build for the frontend.
-- Docker builds for all service images and the frontend image.
-- Helm lint/template validation.
-- Kustomize render validation for `infra/k8s`.
-
-## Repository Hygiene
-
-Build outputs, local Maven caches, logs, frontend dependencies, and Terraform
-state are ignored in `.gitignore`. The repo currently has tracked `.m2`
-artifacts, which can trigger Git LFS clean errors during `git status`.
-
-After confirming with the team, clean the index without deleting local files:
-
-```powershell
-git rm --cached -r .m2
-git rm --cached -r */target
-```
-
-Then commit the cleanup with the new `.gitignore`.
-
-## Troubleshooting
-
-- `ImagePullBackOff`: the cluster cannot see the local `foodie-*:local` images. Load them into kind/minikube or push to a registry and set `global.registry` plus `global.imageTag`.
-- `ScaledObject` errors: install KEDA before the Helm chart.
-- HPA shows unknown metrics: install Metrics Server.
-- Elasticsearch will not start on Linux nodes: set `vm.max_map_count=262144` on the node.
-- Frontend API calls fail: check `svc/gateway-service`, gateway logs, and the downstream service pod readiness.
+The goal of this project is to simulate production-style backend engineering patterns used in scalable cloud-native systems.
