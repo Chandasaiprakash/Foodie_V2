@@ -62,7 +62,7 @@ class RetryHandlingIT extends KafkaIntegrationTestBase {
         o.setItems(List.of(new OrderItem("Pizza", 1, 200.0)));
         o.setTotal(200.0);
         o.setCreatedAt(Instant.now());
-        orderRepository.save(o);
+        orderRepository.saveAndFlush(o);
 
         // Retry should pick it up and confirm
         await().atMost(40, TimeUnit.SECONDS).untilAsserted(() -> {
