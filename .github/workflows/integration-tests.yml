@@ -36,8 +36,11 @@ jobs:
           docker pull confluentinc/cp-kafka:7.6.1
           docker pull mysql:8.0
 
+      - name: Build shared modules
+        run: mvn -B -ntp clean install -DskipTests
+
       - name: Run integration tests
-        run: mvn -B -ntp failsafe:integration-test failsafe:verify
+        run: mvn -B -ntp verify -DskipITs=false
 
       - name: Upload failsafe reports
         if: failure()
