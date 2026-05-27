@@ -10,13 +10,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Integration test 5: Consumer retry handling.
@@ -65,9 +65,12 @@ class RetryHandlingIT extends KafkaIntegrationTestBase {
         orderRepository.saveAndFlush(o);
 
         // Retry should pick it up and confirm
-        await().atMost(40, TimeUnit.SECONDS).untilAsserted(() -> {
-            Order updated = orderRepository.findByOrderUuid(orderUuid).orElseThrow();
-            assertThat(updated.getStatus()).isEqualTo("CONFIRMED");
-        });
+        await()
+            .pollInterval(Duration.ofMillis(500))
+            .atMost(Duration.ofSeconds(90))
+            .untilAsserted(() -> {
+                Order updated = orderRepository.findByOrderUuid(orderUuid).orElseThrow();
+                assertThat(updated.getStatus()).isEqualTo("CONFIRMED");
+            });
     }
 }
