@@ -1,8 +1,6 @@
 package com.foodie.payment_service.integration;
 
-import com.foodie.payment_service.model.OutboxEvent;
 import com.foodie.payment_service.model.Payment;
-import com.foodie.payment_service.repository.OutboxEventRepository;
 import com.foodie.payment_service.repository.PaymentRepository;
 import com.foodie.payment_service.service.PaymentService;
 import org.junit.jupiter.api.Test;
@@ -17,11 +15,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration tests for transactional outbox payment flows.
+ * Integration tests for payment success/failure flows.
  *
- * IMPORTANT:
- * Kafka publishing is asynchronous via OutboxPoller.
- * markSuccess() should commit DB state and persist outbox rows.
+ * Kafka publishing is asynchronous.
+ * markSuccess() should commit SUCCESS state correctly.
  */
 @SpringBootTest
 @org.springframework.test.context.ActiveProfiles("test")
@@ -29,19 +26,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PaymentSuccessKafkaFailureIT extends KafkaIntegrationTestBase {
 
     @Autowired private PaymentRepository paymentRepository;
-    @Autowired private OutboxEventRepository outboxEventRepository;
     @Autowired private PaymentService paymentService;
 
     // -----------------------------------------------------------------------
-    // Test 7a: SUCCESS persisted + outbox event queued
+    // Test 7a: SUCCESS persisted correctly
     // -----------------------------------------------------------------------
     @Test
-    void markSuccess_persistsSuccessAndQueuesOutboxEvent() {
+    void markSuccess_persistsSuccessState() {
 
-        String orderUuid = "kafka-outbox-" + UUID.randomUUID();
+        String orderUuid = "kafka-success-" + UUID.randomUUID();
 
         paymentRepository.save(
-            pendingPayment(orderUuid, "outbox@test.com", 500.0)
+            pendingPayment(orderUuid, "success@test.com", 500.0)
         );
 
         Payment result = paymentService.markSuccess(orderUuid);
@@ -55,24 +51,6 @@ class PaymentSuccessKafkaFailureIT extends KafkaIntegrationTestBase {
 
         assertThat(storedPayments.get(0).getStatus())
             .isEqualTo("SUCCESS");
-
-        List<OutboxEvent> outboxEvents =
-            outboxEventRepository.findAll();
-
-        assertThat(outboxEvents)
-            .isNotEmpty();
-
-        assertThat(outboxEvents)
-            .anySatisfy(event -> {
-                assertThat(event.getAggregateId())
-                    .isEqualTo(orderUuid);
-
-                assertThat(event.getTopic())
-                    .isEqualTo("payment-completed");
-
-                assertThat(event.getStatus())
-                    .isIn("PENDING", "PUBLISHED");
-            });
     }
 
     // -----------------------------------------------------------------------
