@@ -42,7 +42,7 @@ class DlqRoutingIT extends KafkaIntegrationTestBase {
     void orphanPaymentCompleted_exhaustsRetriesAndLandsOnDlt() throws Exception {
         String orphanUuid = "no-such-order-" + UUID.randomUUID();
 
-        Map<String, Object> props = dltConsumerProps("dlt-verify-" + UUID.randomUUID());
+        Map<String, Object> props = dltConsumerProps(kafka.getBootstrapServers(), "dlt-verify-" + UUID.randomUUID());
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
             consumer.subscribe(List.of("payment-completed-dlt"));
 
@@ -70,11 +70,10 @@ class DlqRoutingIT extends KafkaIntegrationTestBase {
         assertThat(orderRepository.findByOrderUuid(orphanUuid)).isEmpty();
     }
 
-    private Map<String, Object> dltConsumerProps(String bootstrapServers) {
-        Map<String, Object> props = KafkaTestUtils.consumerProps(bootstrapServers, "order-service-dlt-group", "false");
-        // If your project uses specific deserializers, configure them here:
-        // props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        // props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    private Map<String, Object> dltConsumerProps(String bootstrapServers, String groupId) {
+        Map<String, Object> props = KafkaTestUtils.consumerProps(bootstrapServers, groupId, "false");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         return props;
     }
 }

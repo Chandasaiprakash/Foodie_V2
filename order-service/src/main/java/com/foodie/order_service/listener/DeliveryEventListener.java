@@ -50,29 +50,30 @@ public class DeliveryEventListener {
 
         String eventId = "delivery-event::" + event.getOrderUuid() + "::" + event.getStatus();
 
+        var order = orderRepository.findByOrderUuid(event.getOrderUuid())
+            .orElseThrow(() -> {
+                log.warn("No order found for UUID: {} - will retry", event.getOrderUuid());
+                return new IllegalStateException("Order not found: " + event.getOrderUuid());
+            });
+
         if (!idempotencyService.claim(eventId)) {
             log.debug("Duplicate DeliveryEvent suppressed: {}", eventId);
             return;
         }
 
-        orderRepository.findByOrderUuid(event.getOrderUuid()).ifPresentOrElse(order -> {
-            order.setStatus(event.getStatus());
-            orderRepository.save(order);
-            log.info("Order {} status updated to {} via DeliveryEvent", order.getOrderUuid(), event.getStatus());
+        order.setStatus(event.getStatus());
+        orderRepository.save(order);
+        log.info("Order {} status updated to {} via DeliveryEvent", order.getOrderUuid(), event.getStatus());
 
-            OrderUpdatedEvent updatedEvent = OrderUpdatedEvent.builder()
-                    .orderUuid(order.getOrderUuid())
-                    .status(order.getStatus())
-                    .paymentStatus(order.getPaymentStatus())
-                    .customerEmail(order.getCustomerEmail())
-                    .build();
+        OrderUpdatedEvent updatedEvent = OrderUpdatedEvent.builder()
+                .orderUuid(order.getOrderUuid())
+                .status(order.getStatus())
+                .paymentStatus(order.getPaymentStatus())
+                .customerEmail(order.getCustomerEmail())
+                .build();
 
-            kafkaTemplate.send("order-updated", updatedEvent);
-            log.info("Published OrderUpdatedEvent after delivery update for {}", order.getOrderUuid());
-        }, () -> {
-            log.warn("No order found for UUID: {} — will retry", event.getOrderUuid());
-            throw new IllegalStateException("Order not found: " + event.getOrderUuid());
-        });
+        kafkaTemplate.send("order-updated", updatedEvent);
+        log.info("Published OrderUpdatedEvent after delivery update for {}", order.getOrderUuid());
     }
 
     @DltHandler

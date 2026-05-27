@@ -59,30 +59,30 @@ public class PaymentEventListener {
 
         String eventId = "payment-completed::" + event.getOrderUuid();
 
+        var order = orderRepository.findByOrderUuid(event.getOrderUuid())
+            .orElseThrow(() -> {
+                log.warn("No order found for UUID: {}", event.getOrderUuid());
+                return new IllegalStateException("Order not found: " + event.getOrderUuid());
+            });
+
         if (!idempotencyService.claim(eventId)) {
             return;
         }
 
-        orderRepository.findByOrderUuid(event.getOrderUuid())
-            .ifPresentOrElse(order -> {
-                order.setPaymentStatus(event.getStatus());
-                order.setStatus("CONFIRMED");
-                orderRepository.save(order);
-                log.info("Order {} confirmed", order.getOrderUuid());
+        order.setPaymentStatus(event.getStatus());
+        order.setStatus("CONFIRMED");
+        orderRepository.save(order);
+        log.info("Order {} confirmed", order.getOrderUuid());
 
-                OrderUpdatedEvent updatedEvent = OrderUpdatedEvent.builder()
-                        .orderUuid(order.getOrderUuid())
-                        .status(order.getStatus())
-                        .paymentStatus(order.getPaymentStatus())
-                        .customerEmail(order.getCustomerEmail())
-                        .correlationId(CorrelationContext.get())
-                        .build();
-                kafkaTemplate.send("order-updated", updatedEvent);
-                log.info("Sent OrderUpdatedEvent for {}", order.getOrderUuid());
-            }, () -> {
-                log.warn("No order found for UUID: {}", event.getOrderUuid());
-                throw new IllegalStateException("Order not found: " + event.getOrderUuid());
-            });
+        OrderUpdatedEvent updatedEvent = OrderUpdatedEvent.builder()
+                .orderUuid(order.getOrderUuid())
+                .status(order.getStatus())
+                .paymentStatus(order.getPaymentStatus())
+                .customerEmail(order.getCustomerEmail())
+                .correlationId(CorrelationContext.get())
+                .build();
+        kafkaTemplate.send("order-updated", updatedEvent);
+        log.info("Sent OrderUpdatedEvent for {}", order.getOrderUuid());
     }
 
     /**

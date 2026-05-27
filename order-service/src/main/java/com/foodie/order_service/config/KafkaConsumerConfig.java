@@ -48,10 +48,15 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "order-service-group");
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.foodie.common.events");
+        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, true);
+
+        JsonDeserializer<Object> valueDeserializer = new JsonDeserializer<>(Object.class, true);
+        valueDeserializer.addTrustedPackages("com.foodie.common.events");
+
         return new DefaultKafkaConsumerFactory<>(
             props,
             new StringDeserializer(),
-            new JsonDeserializer<>(Object.class, false)
+            valueDeserializer
         );
     }
 

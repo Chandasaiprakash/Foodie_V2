@@ -47,18 +47,21 @@ public class PaymentFailedEventListener {
 
         String eventId = "payment-failed::" + event.getOrderUuid();
 
+        var order = orderRepository.findByOrderUuid(event.getOrderUuid())
+            .orElseThrow(() -> {
+                log.warn("No order found for UUID: {} - will retry payment failure", event.getOrderUuid());
+                return new IllegalStateException("Order not found: " + event.getOrderUuid());
+            });
+
         if (!idempotencyService.claim(eventId)) {
             return;
         }
 
-        orderRepository.findByOrderUuid(event.getOrderUuid())
-            .ifPresent(order -> {
-                order.setPaymentStatus("FAILED");
-                order.setStatus("CANCELLED");
-                orderRepository.save(order);
-                log.warn("Order {} CANCELLED — payment failed. Reason: {}",
-                         order.getOrderUuid(), event.getReason());
-            });
+        order.setPaymentStatus("FAILED");
+        order.setStatus("CANCELLED");
+        orderRepository.save(order);
+        log.warn("Order {} CANCELLED - payment failed. Reason: {}",
+                 order.getOrderUuid(), event.getReason());
     }
 
     @DltHandler
