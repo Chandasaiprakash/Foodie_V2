@@ -33,6 +33,14 @@ jobs:
       - name: Fast backend validation
         run: mvn -B -ntp clean verify -DskipITs
 
+      - name: Upload backend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jars
+          path: |
+            */target/*.jar
+          retention-days: 1
+
   frontend:
     runs-on: ubuntu-latest
 
@@ -40,12 +48,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify frontend exists
+        run: |
+          if [ ! -f "Foodie-App-Frontend/package.json" ]; then
+            echo "Frontend package.json missing"
+            exit 1
+          fi
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: Foodie-App-Frontend/package-lock.json
+
+      - name: Generate lockfile if missing
+        working-directory: Foodie-App-Frontend
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install
+          fi
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('Foodie-App-Frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Build frontend
         working-directory: Foodie-App-Frontend
@@ -63,10 +91,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Download backend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jars
+
+      - name: Restore JAR structure
+        run: |
+          mkdir -p order-service/target
+          find . -name "order-service-*.jar" -exec cp {} order-service/target/order-service-0.0.1-SNAPSHOT.jar \;
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker images with cache
+      - name: Build Docker image with cache
         uses: docker/build-push-action@v6
         with:
           context: .
