@@ -1,7 +1,10 @@
 package com.foodie.payment_service;
 
 import com.foodie.common.events.OrderCreatedEvent;
+import com.foodie.common.events.PaymentCompletedEvent;
+import com.foodie.common.events.PaymentFailedEvent;
 import com.foodie.payment_service.model.Payment;
+import com.foodie.payment_service.outbox.OutboxEventService;
 import com.foodie.payment_service.repository.PaymentRepository;
 import com.foodie.payment_service.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +14,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.time.Instant;
 import java.util.List;
@@ -29,7 +31,7 @@ class PaymentServiceTest {
     private PaymentRepository paymentRepository;
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OutboxEventService outboxEventService;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -76,7 +78,7 @@ class PaymentServiceTest {
         Payment result = paymentService.markSuccess("order-uuid-001");
 
         assertThat(result.getStatus()).isEqualTo("SUCCESS");
-        verify(kafkaTemplate).send(eq("payment-completed"), anyString(), any());
+        verify(outboxEventService).save(eq("payment-completed"), eq("order-uuid-001"), isA(PaymentCompletedEvent.class));
     }
 
     @Test
@@ -96,7 +98,7 @@ class PaymentServiceTest {
         Payment result = paymentService.markFailed("order-uuid-001", "Insufficient funds");
 
         assertThat(result.getStatus()).isEqualTo("FAILED");
-        verify(kafkaTemplate).send(eq("payment-failed"), anyString(), any());
+        verify(outboxEventService).save(eq("payment-failed"), eq("order-uuid-001"), isA(PaymentFailedEvent.class));
     }
 
     @Test
@@ -121,7 +123,7 @@ class PaymentServiceTest {
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getPaymentUuid()).isNotBlank();
         assertThat(result.getStatus()).isEqualTo("SUCCESS");
-        verify(kafkaTemplate).send(eq("payment-completed"), anyString(), any());
+        verify(outboxEventService).save(eq("payment-completed"), eq("order-uuid-002"), isA(PaymentCompletedEvent.class));
     }
 
     @Test

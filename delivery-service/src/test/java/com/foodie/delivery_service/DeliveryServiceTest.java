@@ -5,19 +5,18 @@ import com.foodie.common.events.DeliveryEvent;
 import com.foodie.delivery_service.client.OrderServiceClient;
 import com.foodie.delivery_service.model.Delivery;
 import com.foodie.delivery_service.model.DeliveryPartner;
+import com.foodie.delivery_service.outbox.OutboxEventService;
 import com.foodie.delivery_service.repository.DeliveryPartnerRepository;
 import com.foodie.delivery_service.repository.DeliveryRepository;
+import com.foodie.delivery_service.resilience.ResilientOrderServiceClient;
 import com.foodie.delivery_service.service.DeliveryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,10 +35,10 @@ class DeliveryServiceTest {
     private DeliveryPartnerRepository partnerRepository;
 
     @Mock
-    private KafkaTemplate<String, DeliveryEvent> kafkaTemplate;
+    private OutboxEventService outboxEventService;
 
     @Mock
-    private OrderServiceClient orderClient;
+    private ResilientOrderServiceClient orderClient;
 
     @InjectMocks
     private DeliveryService deliveryService;
@@ -62,7 +61,7 @@ class DeliveryServiceTest {
                 .customerPhone("8888888888")
                 .build();
         when(partnerRepository.findByAvailableTrue()).thenReturn(List.of(availablePartner));
-        when(deliveryRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(deliveryRepository.insert(any(Delivery.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Delivery result = deliveryService.assignForOrder(event);
 
@@ -70,7 +69,7 @@ class DeliveryServiceTest {
         assertThat(result.getStatus()).isEqualTo("ASSIGNED");
         assertThat(result.getPartnerId()).isEqualTo("partner-1");
         verify(partnerRepository).save(argThat(p -> !p.isAvailable())); // partner marked unavailable
-        verify(kafkaTemplate).send(eq("delivery-events"), anyString(), any());
+        verify(outboxEventService).save(eq("delivery-events"), eq("order-uuid-001"), isA(DeliveryEvent.class));
     }
 
     @Test
@@ -81,7 +80,7 @@ class DeliveryServiceTest {
                 .customerPhone("1234567890")
                 .build();
         when(partnerRepository.findByAvailableTrue()).thenReturn(List.of());
-        when(deliveryRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(deliveryRepository.insert(any(Delivery.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Delivery result = deliveryService.assignForOrder(event);
 
@@ -96,12 +95,14 @@ class DeliveryServiceTest {
                 .customerEmail(null)
                 .customerPhone(null)
                 .build();
-        OrderServiceClient.OrderDto dto = mock(OrderServiceClient.OrderDto.class);
-        when(dto.customerEmail()).thenReturn("fetched@example.com");
-        when(dto.customerPhone()).thenReturn("5555555555");
-        when(orderClient.getOrder("order-uuid-003")).thenReturn(dto);
+        OrderServiceClient.OrderDto dto = new OrderServiceClient.OrderDto(
+                "order-uuid-003",
+                "fetched@example.com",
+                "5555555555"
+        );
+        when(orderClient.fetchOrder("order-uuid-003")).thenReturn(Optional.of(dto));
         when(partnerRepository.findByAvailableTrue()).thenReturn(List.of());
-        when(deliveryRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(deliveryRepository.insert(any(Delivery.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Delivery result = deliveryService.assignForOrder(event);
 
@@ -120,7 +121,7 @@ class DeliveryServiceTest {
         Delivery result = deliveryService.manualAssign(delivery);
 
         assertThat(result.getAssignedAt()).isNotNull();
-        verify(kafkaTemplate).send(eq("delivery-events"), anyString(), any());
+        verify(outboxEventService).save(eq("delivery-events"), eq("order-uuid-004"), isA(DeliveryEvent.class));
     }
 
     @Test
@@ -150,7 +151,7 @@ class DeliveryServiceTest {
         Delivery result = deliveryService.updateStatus("delivery-1", "PICKED_UP");
 
         assertThat(result.getStatus()).isEqualTo("PICKED_UP");
-        verify(kafkaTemplate).send(eq("delivery-events"), anyString(), any());
+        verify(outboxEventService).save(eq("delivery-events"), eq("order-uuid-006"), isA(DeliveryEvent.class));
     }
 
     @Test
