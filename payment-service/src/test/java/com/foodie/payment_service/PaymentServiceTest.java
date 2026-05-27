@@ -54,12 +54,18 @@ class PaymentServiceTest {
 
     @Test
     void processPayment_createsPendingPaymentRecord() {
+
         OrderCreatedEvent event = OrderCreatedEvent.builder()
                 .orderUuid("order-uuid-001")
                 .customerEmail("customer@example.com")
                 .total(99.99)
                 .build();
-        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        when(paymentRepository.findByOrderUuid("order-uuid-001"))
+                .thenReturn(List.of());
+
+        when(paymentRepository.saveAndFlush(any(Payment.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
 
         Payment result = paymentService.processPayment(event);
 
@@ -116,6 +122,7 @@ class PaymentServiceTest {
                 .customerEmail("test@example.com")
                 .amount(50.00)
                 .build();
+
         when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         Payment result = paymentService.manualPayment(request);
@@ -123,12 +130,18 @@ class PaymentServiceTest {
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getPaymentUuid()).isNotBlank();
         assertThat(result.getStatus()).isEqualTo("SUCCESS");
+
         verify(outboxEventService).save(eq("payment-completed"), eq("order-uuid-002"), isA(PaymentCompletedEvent.class));
     }
 
     @Test
     void createPendingForOrder_savesWithPendingStatus() {
-        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        when(paymentRepository.findByOrderUuid("order-uuid-003"))
+                .thenReturn(List.of());
+
+        when(paymentRepository.save(any()))
+                .thenAnswer(inv -> inv.getArgument(0));
 
         Payment result = paymentService.createPendingForOrder("order-uuid-003", "user@x.com", 25.00);
 
@@ -164,7 +177,9 @@ class PaymentServiceTest {
         Payment result = paymentService.updatePayment("pay-uuid-001", update);
 
         ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
+
         verify(paymentRepository).save(captor.capture());
+
         assertThat(captor.getValue().getStatus()).isEqualTo("SUCCESS");
         assertThat(captor.getValue().getMethod()).isEqualTo("CARD");
     }
