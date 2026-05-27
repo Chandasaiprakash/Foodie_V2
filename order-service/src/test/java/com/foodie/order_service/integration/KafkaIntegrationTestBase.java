@@ -16,7 +16,7 @@ import java.time.Duration;
  *
  * Containers are declared static + @Container so they are shared across all
  * test classes in the same JVM run (Testcontainers reuse semantics).
- * DynamicPropertySource wires the real container ports into Spring's
+ * DynamicPropertySource wires the real container ports into Spring
  * environment, overriding application.properties at test time.
  *
  * Container lifecycle:
