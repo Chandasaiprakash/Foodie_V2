@@ -24,9 +24,6 @@ import static org.awaitility.Awaitility.await;
  * Scenario: a PaymentCompletedEvent arrives BEFORE the order is saved to the DB
  * (race condition between order-service and payment-service startup).
  * The listener throws → retries → by the time of the 2nd retry the order exists.
- *
- * We simulate this by sending the event first, then persisting the order
- * within the retry window.
  */
 @SpringBootTest
 @org.springframework.test.context.ActiveProfiles("test")
@@ -37,7 +34,7 @@ class RetryHandlingIT extends KafkaIntegrationTestBase {
     @Autowired private OrderRepository orderRepository;
 
     @Test
-    void paymentCompleted_arrivesBeforeOrder_eventuallyProcessedAfterRetry() throws Exception {
+    void paymentCompleted_arrivesBeforeOrder_eventuallyProcessedAfterRetry() {
         String orderUuid = "late-order-" + UUID.randomUUID();
 
         // Send event BEFORE order exists in DB
@@ -49,8 +46,11 @@ class RetryHandlingIT extends KafkaIntegrationTestBase {
                 .status("SUCCESS")
                 .build());
 
-        // Create order 3 seconds later (within retry window)
-        Thread.sleep(3000);
+        // Short deterministic delay for listener race simulation
+        await()
+            .pollDelay(Duration.ofMillis(800))
+            .until(() -> true);
+
         Order o = new Order();
         o.setOrderUuid(orderUuid);
         o.setCustomerEmail("retry@test.com");
