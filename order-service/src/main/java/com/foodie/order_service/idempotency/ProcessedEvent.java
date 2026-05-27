@@ -1,49 +1,40 @@
 package com.foodie.order_service.idempotency;
 
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
+
 import java.time.Instant;
 
 /**
  * Idempotency guard for Kafka consumers in order-service.
  *
- * DESIGN:
- *   event_id is the PRIMARY KEY (already unique by definition).
- *   The @Column(unique = true) annotation ensures Hibernate also generates
- *   a UNIQUE constraint in DDL — providing two layers of uniqueness enforcement:
- *     1. Primary key constraint  (DB-level)
- *     2. Unique column constraint (DDL-level — also generates a unique index)
+ * CRITICAL:
+ * Spring Data JPA treats non-null @Id entities as EXISTING by default and
+ * calls EntityManager.merge() instead of persist().
  *
- * WHY TWO LAYERS?
- *   The PK alone suffices at runtime, but the explicit @Column(unique=true)
- *   makes the intent self-documenting and ensures the unique index is present
- *   even if the PK implementation is changed in future.
+ * That completely breaks duplicate detection because merge() issues:
+ *   SELECT ...
+ *   UPDATE ...
  *
- * ATOMICITY:
- *   IdempotencyService.claim() uses REQUIRES_NEW propagation and saveAndFlush().
- *   If two threads race, exactly one INSERT succeeds; the other gets
- *   DataIntegrityViolationException and returns false — skipping processing.
+ * instead of INSERT.
  *
- * TTL / CLEANUP:
- *   expires_at is stored so that IdempotencyCleanupScheduler can delete
- *   rows older than the retention window (default 7 days) without a full
- *   table scan. The idx_processed_events_expires_at index makes this O(log n).
+ * For idempotency semantics we REQUIRE:
+ *   INSERT → success      = first processing
+ *   INSERT → PK violation = duplicate replay
  *
- *   Why keep records at all for 7 days?
- *   Kafka's consumer group offset commit can lag by minutes in crash-recovery
- *   scenarios. Deleting idempotency rows too early re-opens the duplicate window.
- *   7 days is safe for any realistic broker retention + retry configuration.
+ * Therefore this entity implements Persistable and always reports isNew=true
+ * so Spring Data performs persist() every time.
  */
 @Entity
 @Table(
-    name = "processed_events",
-    indexes = {
-        @Index(name = "idx_processed_events_id",      columnList = "event_id",   unique = true),
-        @Index(name = "idx_processed_events_expires",  columnList = "expires_at", unique = false)
-    }
+        name = "processed_events",
+        indexes = {
+                @Index(name = "idx_processed_events_id", columnList = "event_id", unique = true),
+                @Index(name = "idx_processed_events_expires", columnList = "expires_at")
+        }
 )
-public class ProcessedEvent {
+public class ProcessedEvent implements Persistable<String> {
 
-    /** Default retention: 7 days. Adjust via IdempotencyCleanupScheduler. */
     public static final long DEFAULT_TTL_DAYS = 7;
 
     @Id
@@ -53,19 +44,46 @@ public class ProcessedEvent {
     @Column(name = "processed_at", nullable = false)
     private Instant processedAt;
 
-    /** Absolute expiry timestamp used by the cleanup job. */
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
 
-    protected ProcessedEvent() {}
+    @Transient
+    private boolean isNew = true;
 
-    public ProcessedEvent(String eventId) {
-        this.eventId     = eventId;
-        this.processedAt = Instant.now();
-        this.expiresAt   = processedAt.plusSeconds(DEFAULT_TTL_DAYS * 86_400);
+    protected ProcessedEvent() {
     }
 
-    public String  getEventId()     { return eventId; }
-    public Instant getProcessedAt() { return processedAt; }
-    public Instant getExpiresAt()   { return expiresAt; }
+    public ProcessedEvent(String eventId) {
+        this.eventId = eventId;
+        this.processedAt = Instant.now();
+        this.expiresAt = processedAt.plusSeconds(DEFAULT_TTL_DAYS * 86_400);
+    }
+
+    @Override
+    public String getId() {
+        return eventId;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PostPersist
+    @PostLoad
+    void markNotNew() {
+        this.isNew = false;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public Instant getProcessedAt() {
+        return processedAt;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
 }
