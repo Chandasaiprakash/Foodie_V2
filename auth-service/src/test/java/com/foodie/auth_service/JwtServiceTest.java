@@ -9,11 +9,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtServiceTest {
 
+    private static final String TEST_SECRET = "super-secret-key-change-me-super-secret-key";
+
     private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtService();
+        jwtService = new JwtService(TEST_SECRET);
     }
 
     private String generateToken(String email, String role) {

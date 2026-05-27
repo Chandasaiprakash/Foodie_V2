@@ -1,30 +1,3 @@
-# =============================================================================
-# KEDA ScaledObjects — Kafka Consumer Lag-Based Autoscaling
-#
-# KEDA (Kubernetes Event-Driven Autoscaling) replaces HPA for services that
-# consume from Kafka. It queries the Kafka broker directly for consumer group
-# lag and adjusts replica count so lag stays below lagThreshold.
-#
-# How lag-based scaling works:
-#   desiredReplicas = ceil(totalLag / lagThreshold)
-#
-# Example: payment-service-group has 900 unprocessed messages across 3 topics
-#   with lagThreshold = 100  →  ceil(900 / 100) = 9 replicas
-#
-# The ScaledObject controller owns the replica count. Do NOT create a standard
-# HPA for these services — dual controllers will fight each other.
-#
-# Services covered:
-#   order-service       — consumes payment-completed, payment-failed, delivery-events
-#   payment-service     — consumes order-created
-#   delivery-service    — consumes payment-completed
-#   notification-service — consumes order-updated, delivery-events
-#
-# KEDA must be installed in the cluster before applying these objects:
-#   helm repo add kedacore https://kedacore.github.io/charts
-#   helm install keda kedacore/keda --namespace keda --create-namespace
-# =============================================================================
-
 {{- range $name, $config := .Values.services }}
 {{- if $config.keda }}
 ---
@@ -35,58 +8,24 @@ metadata:
   namespace: {{ $.Values.global.namespace }}
   labels:
     app: {{ $name }}
-    # This annotation tells KEDA which Deployment to own. KEDA will create and
-    # manage an internal HPA (not the autoscaling/v2 kind) automatically.
-    scaledobject.keda.sh/transfer-hpa-ownership: "true"
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ $name }}
-
-  # Minimum replicas when there is zero lag. Set to 1 (not 0) for all consumer
-  # services so there is always at least one pod ready to pick up new messages
-  # immediately — cold-start latency on 0→1 scale-up would otherwise add
-  # seconds to the payment flow and order-created fanout.
   minReplicaCount: {{ $config.keda.minReplicaCount }}
   maxReplicaCount: {{ $config.keda.maxReplicaCount }}
-
-  # How long KEDA waits after the last scale event before scaling down.
-  # 5 minutes matches the HPA scaleDown stabilizationWindowSeconds so
-  # behaviour is consistent whether or not KEDA is managing the service.
-  cooldownPeriod: {{ $config.keda.cooldownPeriod | default 300 }}
-
-  # Poll the Kafka broker every N seconds for lag metrics.
-  pollingInterval: {{ $config.keda.pollingInterval | default 15 }}
-
+  cooldownPeriod: {{ default 300 $config.keda.cooldownPeriod }}
+  pollingInterval: {{ default 15 $config.keda.pollingInterval }}
   triggers:
     {{- range $config.keda.triggers }}
     - type: kafka
       metadata:
-        # The Kafka broker address inside the cluster. This must match
-        # SPRING_KAFKA_BOOTSTRAP_SERVERS in the service's ConfigMap.
-        bootstrapServers: {{ $.Values.kafka.bootstrapServers }}
-
-        # The consumer group whose lag drives scaling.
-        # Must match spring.kafka.consumer.group-id / GROUP_ID_CONFIG in the service.
-        consumerGroup: {{ .consumerGroup }}
-
-        # The specific topic to measure lag on.
-        # KEDA creates one trigger per topic. desiredReplicas = ceil(topicLag / lagThreshold).
-        # When a service consumes multiple topics, KEDA takes the MAX across all triggers.
-        topic: {{ .topic }}
-
-        # Target lag per replica. Tune per service:
-        #   - payment-service: 50  (low — money path, must stay fast)
-        #   - order-service:   100 (moderate — fan-out receiver)
-        #   - delivery-service: 100
-        #   - notification-service: 200 (high — notifications can tolerate more delay)
+        bootstrapServers: {{ $.Values.kafka.bootstrapServers | quote }}
+        consumerGroup: {{ .consumerGroup | quote }}
+        topic: {{ .topic | quote }}
         lagThreshold: {{ .lagThreshold | quote }}
-
-        # offsetResetPolicy: what to do if there is no committed offset yet
-        # (first deploy, new consumer group). "latest" means skip old messages;
-        # "earliest" means process everything from the beginning of the topic.
-        offsetResetPolicy: {{ .offsetResetPolicy | default "latest" }}
+        offsetResetPolicy: {{ default "latest" .offsetResetPolicy | quote }}
     {{- end }}
 {{- end }}
 {{- end }}

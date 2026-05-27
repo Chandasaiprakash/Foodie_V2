@@ -2,6 +2,7 @@ package com.foodie.auth_service.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -10,8 +11,11 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // In dev: keep secret length >= 32 bytes. In prod, store in env/secret manager.
-    private final Key key = Keys.hmacShaKeyFor("super-secret-key-change-me-super-secret-key".getBytes());
+    private final Key key;
+
+    public JwtService(@Value("${jwt.secret:super-secret-key-change-me-super-secret-key}") String jwtSecret) {
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    }
 
     // ✅ Generate token with userId, email & role
     public String generateToken(Long userId, String email, String role,String username,String phoneNumber, long ttlMillis) {

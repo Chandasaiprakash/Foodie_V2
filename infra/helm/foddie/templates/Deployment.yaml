@@ -1,4 +1,9 @@
 {{- range $name, $config := .Values.services }}
+{{- $registry := trimSuffix "/" $.Values.global.registry }}
+{{- $imageName := default (printf "foodie-%s" $name) $config.imageName }}
+{{- $probePath := default $.Values.readinessProbe.httpGet.path $config.probePath }}
+{{- $livenessPath := default $.Values.livenessProbe.httpGet.path $config.probePath }}
+{{- $service := default (dict) $config.service }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -7,7 +12,7 @@ metadata:
   namespace: {{ $.Values.global.namespace }}
   labels:
     app: {{ $name }}
-    version: {{ $.Values.global.imageTag }}
+    version: {{ $.Values.global.imageTag | quote }}
 spec:
   replicas: {{ $config.replicaCount }}
   selector:
@@ -22,34 +27,28 @@ spec:
     metadata:
       labels:
         app: {{ $name }}
-        version: {{ $.Values.global.imageTag }}
-      annotations:
-        # Force pod restart when the ConfigMap content changes.
-        checksum/config: {{ $config.configMapRef | sha256sum }}
+        version: {{ $.Values.global.imageTag | quote }}
     spec:
-      # Give pods up to 60 s to finish in-flight Kafka messages before SIGKILL.
-      # Kafka consumers commit offsets only after the listener returns, so abrupt
-      # shutdown can re-deliver a message. 60 s covers the longest expected
-      # processing time (Razorpay call + DB write) with margin.
       terminationGracePeriodSeconds: 60
-
       containers:
         - name: {{ $name }}
-          image: {{ $.Values.global.registry }}/foodie-{{ $name }}:{{ $.Values.global.imageTag }}
-          imagePullPolicy: Always
+          image: "{{ if $registry }}{{ $registry }}/{{ $imageName }}:{{ $.Values.global.imageTag }}{{ else }}{{ $imageName }}:{{ $.Values.global.imageTag }}{{ end }}"
+          imagePullPolicy: {{ default $.Values.global.imagePullPolicy $config.imagePullPolicy }}
           ports:
             - containerPort: {{ $config.port }}
               name: http
-
-          # ── Configuration ──────────────────────────────────────────────────
+          {{- if or $config.configMapRef $config.secretRefs }}
           envFrom:
+            {{- if $config.configMapRef }}
             - configMapRef:
                 name: {{ $config.configMapRef }}
+            {{- end }}
             {{- range $config.secretRefs }}
             - secretRef:
                 name: {{ . }}
             {{- end }}
-
+          {{- end }}
+          {{- if or $config.datasourceUrl $config.mongoUri $config.extraEnv }}
           env:
             {{- if $config.datasourceUrl }}
             - name: SPRING_DATASOURCE_URL
@@ -59,50 +58,35 @@ spec:
             - name: SPRING_DATA_MONGODB_URI
               value: {{ $config.mongoUri | quote }}
             {{- end }}
-
-          # ── Resource limits ────────────────────────────────────────────────
+            {{- range $key, $value := $config.extraEnv }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
           resources:
             requests:
-              memory: {{ $config.resources.requests.memory }}
-              cpu: {{ $config.resources.requests.cpu }}
+              memory: {{ $config.resources.requests.memory | quote }}
+              cpu: {{ $config.resources.requests.cpu | quote }}
             limits:
-              memory: {{ $config.resources.limits.memory }}
-              cpu: {{ $config.resources.limits.cpu }}
-
-          # ── Startup probe ──────────────────────────────────────────────────
-          # Blocks liveness/readiness checks until Spring Boot has fully started.
-          # Allows up to startupProbe.failureThreshold * periodSeconds before
-          # the pod is killed (e.g. 30 * 5s = 150 s for slow JVM warm-up or
-          # Liquibase/Flyway migrations). Once startup succeeds, liveness takes
-          # over with its normal tight window.
+              memory: {{ $config.resources.limits.memory | quote }}
+              cpu: {{ $config.resources.limits.cpu | quote }}
           startupProbe:
             httpGet:
-              path: {{ $.Values.startupProbe.httpGet.path }}
+              path: {{ $probePath }}
               port: http
             failureThreshold: {{ $.Values.startupProbe.failureThreshold }}
             periodSeconds: {{ $.Values.startupProbe.periodSeconds }}
-
-          # ── Liveness probe ─────────────────────────────────────────────────
-          # Restarts a pod that has deadlocked or entered an unrecoverable state
-          # (e.g. circuit breaker storm, OOM-adjacent). Only fires AFTER startup
-          # probe passes.
           livenessProbe:
             httpGet:
-              path: {{ $.Values.livenessProbe.httpGet.path }}
+              path: {{ $livenessPath }}
               port: http
             initialDelaySeconds: {{ $.Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ $.Values.livenessProbe.periodSeconds }}
             failureThreshold: {{ $.Values.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ $.Values.livenessProbe.timeoutSeconds }}
-
-          # ── Readiness probe ────────────────────────────────────────────────
-          # Removes the pod from the Service endpoints while it is warming up,
-          # processing a large backlog, or waiting for a dependency (DB, Kafka).
-          # kube-proxy stops routing new traffic to unready pods — this is the
-          # "pause incoming requests" signal, not a kill trigger.
           readinessProbe:
             httpGet:
-              path: {{ $.Values.readinessProbe.httpGet.path }}
+              path: {{ $probePath }}
               port: http
             initialDelaySeconds: {{ $.Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ $.Values.readinessProbe.periodSeconds }}
@@ -111,7 +95,6 @@ spec:
             timeoutSeconds: {{ $.Values.readinessProbe.timeoutSeconds }}
 
 ---
-# ── ClusterIP Service ─────────────────────────────────────────────────────────
 apiVersion: v1
 kind: Service
 metadata:
@@ -120,11 +103,11 @@ metadata:
   labels:
     app: {{ $name }}
 spec:
+  type: {{ default "ClusterIP" $service.type }}
   selector:
     app: {{ $name }}
   ports:
     - protocol: TCP
-      port: 80
+      port: {{ default 80 $service.port }}
       targetPort: http
-  type: ClusterIP
 {{- end }}

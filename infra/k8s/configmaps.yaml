@@ -1,13 +1,79 @@
-# =============================================================================
-# FOODIE — Kubernetes ConfigMaps
-#
-# Replaces Spring Cloud Config Server. Each service's non-secret configuration
-# is mounted as environment variables from its own ConfigMap. Sensitive values
-# (DB passwords, Razorpay keys, JWT secret) live in Secrets — see secrets.yaml.
-#
-# Apply:   kubectl apply -f infra/k8s/configmaps.yaml -n foodie
-# Update:  kubectl apply -f infra/k8s/configmaps.yaml -n foodie  (rolling pods pick it up)
-# =============================================================================
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-service-config
+  namespace: foodie
+data:
+  SERVER_PORT: "8080"
+  SPRING_APPLICATION_NAME: "gateway-service"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health,circuitbreakers"
+  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
+  LOGGING_LEVEL_COM_FOODIE: "INFO"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: foodie
+data:
+  SERVER_PORT: "8081"
+  SPRING_APPLICATION_NAME: "auth-service"
+  USER_SERVICE_URL: "http://user-service.foodie.svc.cluster.local"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health,circuitbreakers"
+  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
+  LOGGING_LEVEL_COM_FOODIE: "INFO"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-config
+  namespace: foodie
+data:
+  SERVER_PORT: "8085"
+  SPRING_APPLICATION_NAME: "user-service"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health"
+  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
+  LOGGING_LEVEL_COM_FOODIE: "INFO"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restaurant-service-config
+  namespace: foodie
+data:
+  SERVER_PORT: "8084"
+  SPRING_APPLICATION_NAME: "restaurant-service"
+  SPRING_ELASTICSEARCH_URIS: "http://elasticsearch.foodie.svc.cluster.local:9200"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health"
+  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
+  LOGGING_LEVEL_COM_FOODIE: "INFO"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-service-config
+  namespace: foodie
+data:
+  SERVER_PORT: "8088"
+  SPRING_APPLICATION_NAME: "cart-service"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health"
+  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
+  LOGGING_LEVEL_COM_FOODIE: "INFO"
 
 ---
 apiVersion: v1
@@ -18,17 +84,13 @@ metadata:
 data:
   SERVER_PORT: "8082"
   SPRING_APPLICATION_NAME: "order-service"
-  # Kafka
   SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka.foodie.svc.cluster.local:9092"
-  # Observability
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health,circuitbreakers"
   MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
   MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
-  # Outbox
   OUTBOX_POLLER_FIXED_DELAY_MS: "5000"
   OUTBOX_CLEANUP_CRON: "0 0 2 * * *"
-  # Logging
   LOGGING_LEVEL_COM_FOODIE: "INFO"
 
 ---
@@ -41,9 +103,9 @@ data:
   SERVER_PORT: "8083"
   SPRING_APPLICATION_NAME: "payment-service"
   SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka.foodie.svc.cluster.local:9092"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health,circuitbreakers"
   MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
   MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
   OUTBOX_POLLER_FIXED_DELAY_MS: "5000"
   OUTBOX_CLEANUP_CRON: "0 0 2 * * *"
@@ -59,29 +121,12 @@ data:
   SERVER_PORT: "8086"
   SPRING_APPLICATION_NAME: "delivery-service"
   SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka.foodie.svc.cluster.local:9092"
-  # Feign: call order-service by K8s DNS — no Eureka lookup
   ORDER_SERVICE_URL: "http://order-service.foodie.svc.cluster.local"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health,circuitbreakers"
   MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
   MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
   OUTBOX_POLLER_FIXED_DELAY_MS: "5000"
-  LOGGING_LEVEL_COM_FOODIE: "INFO"
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: restaurant-service-config
-  namespace: foodie
-data:
-  SERVER_PORT: "8084"
-  SPRING_APPLICATION_NAME: "restaurant-service"
-  SPRING_ELASTICSEARCH_URIS: "http://elasticsearch.foodie.svc.cluster.local:9200"
-  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
-  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
   LOGGING_LEVEL_COM_FOODIE: "INFO"
 
 ---
@@ -96,72 +141,8 @@ data:
   SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka.foodie.svc.cluster.local:9092"
   REDIS_HOST: "redis.foodie.svc.cluster.local"
   REDIS_PORT: "6379"
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "prometheus,health"
   MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
-  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
-  LOGGING_LEVEL_COM_FOODIE: "INFO"
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: auth-service-config
-  namespace: foodie
-data:
-  SERVER_PORT: "8081"
-  SPRING_APPLICATION_NAME: "auth-service"
-  # Feign: call user-service by K8s DNS — no Eureka lookup
-  USER_SERVICE_URL: "http://user-service.foodie.svc.cluster.local"
-  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
-  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
-  LOGGING_LEVEL_COM_FOODIE: "INFO"
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: user-service-config
-  namespace: foodie
-data:
-  SERVER_PORT: "8085"
-  SPRING_APPLICATION_NAME: "user-service"
-  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
-  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
-  LOGGING_LEVEL_COM_FOODIE: "INFO"
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: cart-service-config
-  namespace: foodie
-data:
-  SERVER_PORT: "8088"
-  SPRING_APPLICATION_NAME: "cart-service"
-  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
-  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
-  LOGGING_LEVEL_COM_FOODIE: "INFO"
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: gateway-service-config
-  namespace: foodie
-data:
-  SERVER_PORT: "8080"
-  SPRING_APPLICATION_NAME: "gateway-service"
-  # All downstream URIs — hard K8s DNS, no Eureka
-  # These mirror the gateway application.properties routes but can be overridden here.
-  MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://otel-collector.foodie.svc.cluster.local:4318/v1/traces"
-  # 1.0 = record every trace (appropriate for staging; tune down for high-volume prod).
-  # Override per-environment via --set in Helm or a separate prod ConfigMap.
   MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
   LOGGING_LEVEL_COM_FOODIE: "INFO"

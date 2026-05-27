@@ -1,0 +1,27 @@
+.idea/
+.vscode/
+
+# Local dependency caches
+.m2/
+
+# Maven build output
+**/target/
+
+# Frontend dependencies and builds
+Foodie-App-Frontend/node_modules/
+Foodie-App-Frontend/dist/
+Foodie-App-Frontend/coverage/
+
+# Runtime logs
+logs/
+*.log
+
+# Terraform local state/cache
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

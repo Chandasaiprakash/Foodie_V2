@@ -1,74 +1,13 @@
-<!-- src/main/resources/logback-spring.xml — auth-service -->
-<!--
-  Logging strategy:
-    Console  — human-readable with traceId, spanId, correlationId for local dev
-    Logstash — structured JSON for ELK/OpenSearch in deployed environments
-               (disabled when LOGSTASH_HOST is unset so local dev stays clean)
-
-  OTel trace context:
-    Micrometer Tracing (Bridge to OTel) automatically populates MDC keys
-    "traceId" and "spanId" on every thread that is inside a recorded span.
-    They appear in every log line here without any extra code.
-
-  Correlation ID:
-    The custom X-Correlation-ID (a business-level ID set at the gateway)
-    is propagated into MDC as "correlationId" by CorrelationIdFilter and
-    KafkaCorrelationConsumerAspect. It is distinct from traceId — it is a
-    stable identifier that can be given to a user for support tickets.
--->
 <configuration>
-    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <springProperty scope="context" name="springAppName" source="spring.application.name" defaultValue="auth-service"/>
 
-    <springProperty scope="context" name="springAppName"   source="spring.application.name"/>
-    <springProperty scope="context" name="logstashHost"    source="logstash.host"     defaultValue=""/>
-    <springProperty scope="context" name="logstashPort"    source="logstash.port"     defaultValue="5000"/>
-
-    <!-- ── Console appender ────────────────────────────────────────────────
-         Pattern fields (left to right):
-           timestamp  thread  level  logger  [traceId spanId]  [corrId]  message
-         traceId/spanId are empty strings outside a span — the :-  fallback
-         keeps alignment clean in local logs.
-    -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [trace=%X{traceId:-} span=%X{spanId:-}] [corrId=%X{correlationId:-none}] - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level ${springAppName} %logger{36} [trace=%X{traceId:-} span=%X{spanId:-}] [corrId=%X{correlationId:-none}] - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- ── Logstash / ELK JSON appender ────────────────────────────────────
-         Only activated when logstash.host is set (via env var LOGSTASH_HOST).
-         Produces a JSON object per log line with all MDC keys as top-level
-         fields, making trace correlation trivial in Kibana/OpenSearch.
-
-         In Kubernetes this is typically replaced by a Fluent Bit DaemonSet
-         that tails stdout, so you may leave LOGSTASH_HOST unset and rely on
-         the Console appender instead.
-    -->
-    <if condition='!property("logstashHost").isEmpty()'>
-        <then>
-            <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-                <destination>${logstashHost}:${logstashPort}</destination>
-                <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                    <fieldNames>
-                        <message>message</message>
-                    </fieldNames>
-                    <customFields>{"application_name":"${springAppName}"}</customFields>
-                    <!-- OTel trace context -->
-                    <includeMdcKeyName>traceId</includeMdcKeyName>
-                    <includeMdcKeyName>spanId</includeMdcKeyName>
-                    <!-- Business correlation ID -->
-                    <includeMdcKeyName>correlationId</includeMdcKeyName>
-                </encoder>
-            </appender>
-        </then>
-    </if>
-
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <if condition='!property("logstashHost").isEmpty()'>
-            <then>
-                <appender-ref ref="LOGSTASH"/>
-            </then>
-        </if>
     </root>
 </configuration>

@@ -2,6 +2,7 @@ package com.foodie.order_service;
 
 import com.foodie.order_service.model.Order;
 import com.foodie.order_service.model.OrderItem;
+import com.foodie.order_service.outbox.OutboxEventService;
 import com.foodie.order_service.repository.OrderRepository;
 import com.foodie.order_service.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,7 @@ class OrderServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OutboxEventService outboxEventService;
 
     @InjectMocks
     private OrderService orderService;
@@ -72,7 +72,7 @@ class OrderServiceTest {
         assertThat(result.getPaymentStatus()).isEqualTo("PENDING");
         assertThat(result.getOrderUuid()).isNotBlank();
         assertThat(result.getTotal()).isEqualTo(12.00);
-        verify(kafkaTemplate).send(eq("order-created"), anyString(), any());
+        verify(outboxEventService).save(eq("order-created"), anyString(), any());
     }
 
     @Test

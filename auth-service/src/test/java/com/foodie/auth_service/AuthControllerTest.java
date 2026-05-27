@@ -1,9 +1,9 @@
 package com.foodie.auth_service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.foodie.auth_service.client.UserClient;
 import com.foodie.auth_service.controller.AuthController;
 import com.foodie.auth_service.dto.*;
+import com.foodie.auth_service.resilience.ResilientUserClient;
 import com.foodie.auth_service.security.JwtAuthFilter;
 import com.foodie.auth_service.security.JwtService;
 import com.foodie.auth_service.security.SecurityConfig;
@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,13 +27,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = AuthController.class)
+@Import({SecurityConfig.class, JwtAuthFilter.class})
 class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private UserClient userClient;
+    private ResilientUserClient userClient;
 
     @MockBean
     private JwtService jwtService;
@@ -40,14 +42,11 @@ class AuthControllerTest {
     @MockBean
     private BCryptPasswordEncoder passwordEncoder;
 
-    @MockBean
-    private JwtAuthFilter jwtAuthFilter;
-
     @Autowired
     private ObjectMapper objectMapper;
 
     private UserAuthDetails buildUserDetails() {
-        return new UserAuthDetails(1L, "user@example.com", "CUSTOMER", "hashed-pass", "testuser", "9876543210");
+        return new UserAuthDetails(1L, "user@example.com", "hashed-pass", "CUSTOMER", "testuser", "9876543210");
     }
 
     @Test
@@ -90,7 +89,7 @@ class AuthControllerTest {
     @Test
     void login_returns200WithToken_onValidCredentials() throws Exception {
         UserAuthDetails user = buildUserDetails();
-        when(userClient.getUserByEmailForAuth(anyString(), anyString())).thenReturn(user);
+        when(userClient.getUserByEmail(anyString(), anyString())).thenReturn(user);
         when(passwordEncoder.matches("password123", "hashed-pass")).thenReturn(true);
         when(jwtService.generateToken(anyLong(), anyString(), anyString(), anyString(), anyString(), anyLong()))
                 .thenReturn("jwt-token");
@@ -109,7 +108,7 @@ class AuthControllerTest {
 
     @Test
     void login_returns401_onWrongPassword() throws Exception {
-        when(userClient.getUserByEmailForAuth(anyString(), anyString())).thenReturn(buildUserDetails());
+        when(userClient.getUserByEmail(anyString(), anyString())).thenReturn(buildUserDetails());
         when(passwordEncoder.matches("wrong", "hashed-pass")).thenReturn(false);
 
         LoginRequest req = new LoginRequest();
@@ -124,8 +123,9 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_returns401_whenUserServiceFails() throws Exception {
-        when(userClient.getUserByEmailForAuth(anyString(), anyString())).thenThrow(new RuntimeException("user-service down"));
+    void login_returns503_whenUserServiceUnavailable() throws Exception {
+        when(userClient.getUserByEmail(anyString(), anyString()))
+                .thenThrow(new ResilientUserClient.UserServiceUnavailableException("user-service down"));
 
         LoginRequest req = new LoginRequest();
         req.setEmail("user@example.com");
@@ -135,7 +135,7 @@ class AuthControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isServiceUnavailable());
     }
 
     @Test

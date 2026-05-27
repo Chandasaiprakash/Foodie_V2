@@ -113,7 +113,7 @@ public class AuthController {
     // ── /me ───────────────────────────────────────────────────────────────────
 
     @GetMapping("/me")
-    public MeResponse me(@RequestHeader("Authorization") String authHeader) {
+    public MeResponse me(@RequestHeader(name = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "Missing or invalid Authorization header");

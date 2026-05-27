@@ -15,12 +15,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtUtilTest {
 
+    private static final String TEST_SECRET = "super-secret-key-change-me-super-secret-key";
+
     private JwtUtil jwtUtil;
-    private final Key key = Keys.hmacShaKeyFor("super-secret-key-change-me-super-secret-key".getBytes());
+    private final Key key = Keys.hmacShaKeyFor(TEST_SECRET.getBytes());
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil();
+        jwtUtil = new JwtUtil(TEST_SECRET);
     }
 
     private String buildToken(String email, String role, long expiryMillis) {

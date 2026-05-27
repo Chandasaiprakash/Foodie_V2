@@ -1,22 +1,3 @@
-# =============================================================================
-# Standard Kubernetes HorizontalPodAutoscaler (HPA)
-#
-# Applied to HTTP-facing services that have no Kafka consumer lag to track.
-# Scales on CPU utilisation so burst API traffic (flash sales, peak lunch hours)
-# causes pods to spin up before requests start queuing.
-#
-# Services covered:
-#   gateway-service     — sole public ingress point; CPU/RPS spikes here first
-#   auth-service        — JWT sign/verify is CPU-bound
-#   restaurant-service  — search queries hit Elasticsearch; CPU + memory spike
-#   user-service        — lightweight CRUD; moderate scaling needed
-#   cart-service        — Redis-backed; scales with session volume
-#
-# Kafka consumers (order, payment, delivery, notification) are scaled by KEDA
-# ScaledObjects in keda-scaledobjects.yaml — HPA is intentionally omitted there
-# to avoid dual-controller conflicts (two controllers fighting over replicas).
-# =============================================================================
-
 {{- range $name, $config := .Values.services }}
 {{- if $config.hpa }}
 ---
@@ -40,23 +21,15 @@ spec:
         name: cpu
         target:
           type: Utilization
-          # Scale up when average CPU across all pods exceeds this %.
-          # 70 % leaves headroom before requests start queueing (typical JVM
-          # GC pauses lift utilisation by 10-15 % momentarily).
           averageUtilization: {{ $config.hpa.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          # Memory is a secondary signal. JVM heap is sized by -Xmx, so memory
-          # rarely triggers scaling on its own — this guard catches leaks or
-          # unusually large request bodies before the pod OOMs.
           averageUtilization: {{ $config.hpa.targetMemoryUtilizationPercentage }}
   behavior:
     scaleUp:
-      # React quickly to traffic spikes: allow doubling replicas every 30 s.
-      # stabilizationWindowSeconds: 0 means act immediately on the first breach.
       stabilizationWindowSeconds: 0
       policies:
         - type: Pods
@@ -67,9 +40,6 @@ spec:
           periodSeconds: 60
       selectPolicy: Max
     scaleDown:
-      # Scale down conservatively: wait 5 minutes after the metric drops before
-      # removing pods. This avoids thrashing when traffic oscillates around the
-      # threshold (e.g. a user hitting refresh repeatedly).
       stabilizationWindowSeconds: 300
       policies:
         - type: Pods

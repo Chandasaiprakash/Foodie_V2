@@ -1,1 +1,5 @@
 *.jar filter=lfs diff=lfs merge=lfs -text
+
+# Local dependency/build caches should never be processed by Git LFS.
+.m2/** -filter -diff -merge text
+**/target/** -filter -diff -merge text
