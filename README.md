@@ -1,8 +1,8 @@
 # 🍔 Foodie — Production-Grade Food Delivery Platform
 
-> A full-stack, cloud-native food delivery application built with a **microservices architecture** on **Spring Boot 3 / Java 21**, a **React 19** frontend, and a complete **Kubernetes + Helm** deployment pipeline.
+> A full-stack, cloud-native food delivery application built with a **microservices architecture** on **Spring Boot 3 / Java 21**, a **React 19** frontend, and a complete **Kubernetes + Helm** deployment pipeline with complete **Observability**.
 
-[![CI/CD](https://github.com/chandasaiprakash/foodie/actions/workflows/ci.yml/badge.svg)](https://github.com/chandasaiprakash/foodie/actions/workflows/ci.yml)
+[![CI/CD](https://github.com/chandasaiprakash/foodie_v2/actions/workflows/ci.yml/badge.svg)](https://github.com/chandasaiprakash/foodie_v2/actions/workflows/ci.yml)
 [![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-Microservices-green?logo=spring)](https://spring.io/projects/spring-cloud)
